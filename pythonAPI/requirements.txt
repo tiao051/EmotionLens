@@ -1,0 +1,11 @@
+numpy==1.23.1
+matplotlib==3.5.2
+tensorflow==2.8.0
+pika==1.2.0
+scikit-learn==1.1.1
+gdown==4.7.1
+deepface==0.0.79
+TikTokApi==5.3.2
+emoji==2.8.0
+opencv-python==4.6.0.66
+

@@ -1,0 +1,7 @@
+{
+    "git.ignoreLimitWarning": true,
+    "CodeGPT.apiKey": "Ollama",
+    "python.analysis.extraPaths": [
+        "./model"
+    ]
+}
