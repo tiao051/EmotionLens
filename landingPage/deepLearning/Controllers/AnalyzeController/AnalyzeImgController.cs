@@ -4,6 +4,7 @@ using deepLearning.Services.RabbitMQServices.ImgServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace deepLearning.Controllers.AnalyzeController
 {
@@ -22,7 +23,6 @@ namespace deepLearning.Controllers.AnalyzeController
             _emotionResultService = emotionResultService;
             _imgManager = imgManager;
             _logger = logger;
-            _logger.LogInformation(">>> AnalyzeImgController initialized");
         }
 
         [HttpPost("img")]
@@ -80,7 +80,19 @@ namespace deepLearning.Controllers.AnalyzeController
                 return NotFound("No emotion result found.");
             }
 
-            return Ok(emotionResult);
+            var response = new
+            {
+                Message = "Success",
+                Data = new
+                {
+                    emotionResult.Id,
+                    emotionResult.Emotion
+                }
+            };
+
+            _logger.LogInformation($"Tra ket qua: {JsonSerializer.Serialize(response)}");
+
+            return Ok(response);
         }
     }
 }

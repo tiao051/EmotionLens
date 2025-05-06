@@ -119,13 +119,10 @@ function fetchEmotionResult() {
     fetch("/api/analyzeImg/get-emotion-result")
         .then(response => response.json())
         .then(data => {
-            // In ra toàn bộ dữ liệu trả về từ API để kiểm tra cấu trúc
             console.log("Full response:", data);
-
-            if (data && data.emotion) {
-                const emotion = data.emotion || "No emotion detected";
+            if (data && data.message === "Success" && data.data && data.data.emotion) {
+                const emotion = data.data.emotion || "No emotion detected";
                 console.log("Detected Emotion:", emotion);
-                document.getElementById("emotion-result").innerText = "Emotion: " + emotion;
             } else {
                 console.log("No emotion result available.");
             }

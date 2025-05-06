@@ -36,8 +36,7 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                     await image.CopyToAsync(stream);
                 }
 
-                _logger.LogInformation($"Image saved at: {filePath}");
-                return filePath; // Trả về đường dẫn local cho xử lý nội bộ hoặc gửi qua RabbitMQ
+                return filePath; 
             }
             catch (Exception ex)
             {

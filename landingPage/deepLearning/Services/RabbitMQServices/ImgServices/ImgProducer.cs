@@ -1,5 +1,4 @@
-﻿using deepLearning.Services.RabbitMQServices.ExcelService;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
 
@@ -8,25 +7,29 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
     public interface IImgQueueProducerService
     {
         Task SendImgFileToRabbitMQ(string filePath);
+        string GenerateFullTimestampId();
     }
+
     public class ImgProducer : IImgQueueProducerService
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<ImgProducer> _logger;
         private readonly string _imgQueue;
+
         public ImgProducer(IConfiguration configuration, ILogger<ImgProducer> logger)
         {
             _configuration = configuration;
             _logger = logger;
             _imgQueue = _configuration["RabbitMQ:ImgQueue"];
         }
+
         public async Task SendImgFileToRabbitMQ(string filePath)
         {
             try
             {
                 if (string.IsNullOrEmpty(filePath))
                 {
-                    _logger.LogError("file path is null or empty");
+                    _logger.LogError("File path is null or empty.");
                     return;
                 }
 
@@ -42,15 +45,15 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                 await using var channel = await connection.CreateChannelAsync();
 
                 await channel.QueueDeclareAsync(
-                   queue: _imgQueue,
-                   durable: true,
-                   exclusive: false,
-                   autoDelete: false,
-                   arguments: null);
+                    queue: _imgQueue,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
 
                 var fileInfo = new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = GenerateFullTimestampId(),
                     FilePath = filePath,
                     Timestamp = DateTime.UtcNow
                 };
@@ -61,18 +64,25 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                 var properties = new BasicProperties { Persistent = true };
 
                 await channel.BasicPublishAsync(
-                   exchange: "",
-                   routingKey: _imgQueue,
-                   mandatory: false,
-                   basicProperties: properties,
-                   body: body);
+                    exchange: "",
+                    routingKey: _imgQueue,
+                    mandatory: false,
+                    basicProperties: properties,
+                    body: body);
 
-                _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm MM/dd/yyyy"));
+                _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}, {FileId}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), fileInfo.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error while sending file info to queue: {ex.Message}");
+                _logger.LogError(ex, "Error while sending file info to RabbitMQ.");
             }
+        }
+
+        public string GenerateFullTimestampId()
+        {
+            var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");
+            var random = Guid.NewGuid().ToString("N")[..6];
+            return $"{timestamp}_{random}";
         }
     }
 }
