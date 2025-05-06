@@ -1,10 +1,9 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.EmotionResults;
-using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ExcelService;
 using deepLearning.Services.RabbitMQServices.ImgServices;
-using deepLearning.Services.SentimentService;
+using deepLearning.Services.RabbitMQServices.TextServices;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,27 +18,7 @@ builder.Logging.AddFilter("System", LogLevel.Warning);
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Đăng ký DI
-builder.Services.AddScoped<TextSentimentAnalyzer>(); 
-builder.Services.AddScoped<AudioSentimentAnalyzer>(); 
-builder.Services.AddScoped<ImageSentimentAnalyzer>();
 builder.Services.AddSingleton<IEmotionResultService, EmotionResultService>();
-
-// Đăng ký Func để sử dụng Factory Injection
-builder.Services.AddScoped<Func<string, IAnalysisService>>(serviceProvider => key =>
-{
-    switch (key)
-    {
-        case "text":
-            return serviceProvider.GetRequiredService<TextSentimentAnalyzer>();
-        case "audio":
-            return serviceProvider.GetRequiredService<AudioSentimentAnalyzer>();
-        case "image":
-            return serviceProvider.GetRequiredService<ImageSentimentAnalyzer>();
-        default:
-            throw new ArgumentException($"Unknown analysis type: {key}");
-    }
-});
-
 builder.Services.AddScoped<ProcessingData>();
 builder.Services.AddScoped<YoutubeCrawlData>();
 
@@ -56,6 +35,11 @@ builder.Services.AddHostedService<ImgConsumer>();
 builder.Services.AddScoped<IImgQueueProducerService,ImgProducer>();
 builder.Services.AddScoped<IImgExportService ,ImgExport>();
 builder.Services.AddTransient<ImgManager>();
+
+//đăng ký rabbitMQ services cho text
+builder.Services.AddHostedService<TextConsumer>();
+builder.Services.AddScoped<ITextQueueProducerService, TextProducer>();
+builder.Services.AddTransient<TextManager>();
 // Add services to the container
 builder.Services.AddControllersWithViews();
 

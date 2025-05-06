@@ -1,6 +1,5 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Models.DTO;
-using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ExcelService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,12 +9,10 @@ namespace deepLearning.Controllers.AnalyzeController
     [ApiController]
     public class AnalyzeUrlController : ControllerBase
     {
-        private readonly Func<string, IAnalysisService> _analysisServiceFactory;
         private readonly YoutubeCrawlData _youtubeCrawData;
         private readonly CSVManager _csvManager;
-        public AnalyzeUrlController(Func<string, IAnalysisService> analysisServiceFactory, YoutubeCrawlData youtubeCrawData, CSVManager csvManager)
+        public AnalyzeUrlController(YoutubeCrawlData youtubeCrawData, CSVManager csvManager)
         {
-            _analysisServiceFactory = analysisServiceFactory;
             _youtubeCrawData = youtubeCrawData;
             _csvManager = csvManager;
         }

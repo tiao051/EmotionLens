@@ -1,14 +1,11 @@
-﻿using deepLearning.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace deepLearning.Controllers.AnalyzeController
 {
     public class AnalyzeAudioController : Controller
     {
-        private readonly IAnalysisService _sentimentAnalyzer;
-        public AnalyzeAudioController(IAnalysisService sentimentAnalyzer)
+        public AnalyzeAudioController()
         {
-            _sentimentAnalyzer = sentimentAnalyzer;
         }
         [HttpPost("audio")]
         public JsonResult AnalyzeAudio()

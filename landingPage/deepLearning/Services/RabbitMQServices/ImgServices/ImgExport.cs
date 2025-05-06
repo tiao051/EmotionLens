@@ -13,7 +13,7 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
     {
         private readonly string _saveDirectory;
         private readonly ILogger<ImgExport> _logger;
-        public ImgExport(IConfiguration configuration, ILogger<ImgExport> logger, ProcessingData processingData)
+        public ImgExport(IConfiguration configuration, ILogger<ImgExport> logger)
         {
             _saveDirectory = configuration.GetValue<string>("ImgFileSettings:ImgFileSaveDirectory");
             _logger = logger;

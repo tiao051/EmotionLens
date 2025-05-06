@@ -1,5 +1,4 @@
 ﻿using deepLearning.Services.EmotionResults;
-using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ImgServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +11,12 @@ namespace deepLearning.Controllers.AnalyzeController
     [ApiController]
     public class AnalyzeImgController : ControllerBase
     {
-        private readonly Func<string, IAnalysisService> _analysisServiceFactory;
         private readonly ImgManager _imgManager;
         private readonly ILogger<AnalyzeImgController> _logger;
         private readonly IEmotionResultService _emotionResultService;
 
-        public AnalyzeImgController(Func<string, IAnalysisService> sentimentAnalyzer, ImgManager imgManager, ILogger<AnalyzeImgController> logger, IEmotionResultService emotionResultService)
+        public AnalyzeImgController(ImgManager imgManager, ILogger<AnalyzeImgController> logger, IEmotionResultService emotionResultService)
         {
-            _analysisServiceFactory = sentimentAnalyzer;
             _emotionResultService = emotionResultService;
             _imgManager = imgManager;
             _logger = logger;

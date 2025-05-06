@@ -1,5 +1,4 @@
 ﻿using deepLearning.Models.DTO;
-using deepLearning.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace deepLearning.Controllers.AnalyzeFolder
@@ -8,10 +7,8 @@ namespace deepLearning.Controllers.AnalyzeFolder
     [ApiController]
     public class AnalyzeTextController : Controller
     {   
-        private readonly Func<string, IAnalysisService> _analysisServiceFactory;
-        public AnalyzeTextController(Func<string, IAnalysisService> analysisServiceFactory)
+        public AnalyzeTextController()
         {
-            _analysisServiceFactory = analysisServiceFactory;
         }
         [HttpPost("comment")]
         public ActionResult<object> AnalyzeText([FromBody] TextRequest request)
@@ -22,15 +19,10 @@ namespace deepLearning.Controllers.AnalyzeFolder
                 return BadRequest(new { success = false, message = "Input text cannot be empty." });
             }
 
-            var analysisService = _analysisServiceFactory("text");
-
-            var result = analysisService.Analyze(request.Text);
-
             return Ok(new
             {
                 success = true,
-                message = "Text analysis completed.",
-                sentiment = result
+                message = "Text analysis completed."
             });
         }
     }

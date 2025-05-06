@@ -1,35 +1,33 @@
-﻿using Newtonsoft.Json;
+﻿using deepLearning.Services.RabbitMQServices.ImgServices;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
 
-namespace deepLearning.Services.RabbitMQServices.ImgServices
+namespace deepLearning.Services.RabbitMQServices.TextServices
 {
-    public interface IImgQueueProducerService
+    public interface ITextQueueProducerService
     {
-        Task SendImgFileToRabbitMQ(string filePath);
-        string GenerateFullTimestampId();
+        Task SendTextFileToRabbitMQ(string filePath);
+        string GenerateTextMessageId();
     }
-
-    public class ImgProducer : IImgQueueProducerService
+    public class TextProducer : ITextQueueProducerService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<ImgProducer> _logger;
-        private readonly string _imgQueue;
-
-        public ImgProducer(IConfiguration configuration, ILogger<ImgProducer> logger)
+        private readonly ILogger<TextProducer> _logger;
+        private readonly string _textQueue;
+        public TextProducer(IConfiguration configuration, ILogger<TextProducer> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            _imgQueue = _configuration["RabbitMQ:ImgQueue"];
+            _textQueue = _configuration["RabbitMQ:TextQueue"];
         }
-
-        public async Task SendImgFileToRabbitMQ(string filePath)
+        public async Task SendTextFileToRabbitMQ(string messageText)
         {
             try
             {
-                if (string.IsNullOrEmpty(filePath))
+                if (string.IsNullOrEmpty(messageText))
                 {
-                    _logger.LogError("File path is null or empty.");
+                    _logger.LogError("text is null or empty.");
                     return;
                 }
 
@@ -45,44 +43,42 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                 await using var channel = await connection.CreateChannelAsync();
 
                 await channel.QueueDeclareAsync(
-                    queue: _imgQueue,
+                    queue: _textQueue,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
                     arguments: null);
 
-                var fileInfo = new
+                var textInfo = new
                 {
-                    Id = GenerateFullTimestampId(),
-                    FilePath = filePath,
+                    Id = GenerateTextMessageId(),
+                    Text = messageText,
                     Timestamp = DateTime.UtcNow
                 };
 
-                var message = JsonConvert.SerializeObject(fileInfo);
-                var body = Encoding.UTF8.GetBytes(message);
+                var jsonPayload = JsonConvert.SerializeObject(textInfo);
+                var body = Encoding.UTF8.GetBytes(jsonPayload);
 
                 var properties = new BasicProperties { Persistent = true };
 
                 await channel.BasicPublishAsync(
                     exchange: "",
-                    routingKey: _imgQueue,
+                    routingKey: _textQueue,
                     mandatory: false,
                     basicProperties: properties,
                     body: body);
 
-                _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}, {FileId}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), fileInfo.Id);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while sending file info to RabbitMQ.");
+                _logger.LogError(ex, "Error while sending text file info to RabbitMQ.");
             }
         }
-
-        public string GenerateFullTimestampId()
+        public string GenerateTextMessageId()
         {
             var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");
             var random = Guid.NewGuid().ToString("N")[..3];
-            return $"IMG_{timestamp}_{random}";
+            return $"TXT_{timestamp}_{random}";
         }
     }
 }
