@@ -68,8 +68,6 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                    body: body);
 
                 _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm MM/dd/yyyy"));
-
-
             }
             catch (Exception ex)
             {

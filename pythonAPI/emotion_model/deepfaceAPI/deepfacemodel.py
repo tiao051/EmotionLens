@@ -30,7 +30,7 @@ def analyze_image_emotion(image_path, model):
             print(f"🎯 Dominant Emotion: {dominant_emotion}")
             print(f"📊 Emotion Scores: {emotion_scores}")
 
-            return dominant_emotion, emotion_scores
+            return dominant_emotion
         else:
             print(f"No face detected in the image: {image_path}")
             return None, None

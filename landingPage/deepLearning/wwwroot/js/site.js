@@ -106,6 +106,7 @@ function analyzeSentimentImg() {
             if (data.success) {
                 showToast(data.message); // Hiển thị thông báo thành công
                 console.log(data.savedPath); // Lưu trữ đường dẫn hoặc xử lý theo ý bạn
+                fetchEmotionResult();
             } else {
                 showToast(data.message); // Hiển thị thông báo lỗi
             }
@@ -114,6 +115,26 @@ function analyzeSentimentImg() {
             showToast("Error: " + error.message);
         });
 }
+function fetchEmotionResult() {
+    fetch("/api/analyzeImg/get-emotion-result")
+        .then(response => response.json())
+        .then(data => {
+            // In ra toàn bộ dữ liệu trả về từ API để kiểm tra cấu trúc
+            console.log("Full response:", data);
+
+            if (data && data.emotion) {
+                const emotion = data.emotion || "No emotion detected";
+                console.log("Detected Emotion:", emotion);
+                document.getElementById("emotion-result").innerText = "Emotion: " + emotion;
+            } else {
+                console.log("No emotion result available.");
+            }
+        })
+        .catch(error => {
+            console.log("Error fetching emotion result: " + error.message);
+        });
+}
+
 
 function analyzeSentimentAudio() {
     const fileInput = document.getElementById("audio-input");

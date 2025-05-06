@@ -1,4 +1,5 @@
-﻿using deepLearning.Services.Interfaces;
+﻿using deepLearning.Services.EmotionResults;
+using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ImgServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace deepLearning.Controllers.AnalyzeController
         private readonly Func<string, IAnalysisService> _analysisServiceFactory;
         private readonly ImgManager _imgManager;
         private readonly ILogger<AnalyzeImgController> _logger;
+        private readonly IEmotionResultService _emotionResultService;
 
-        public AnalyzeImgController(Func<string, IAnalysisService> sentimentAnalyzer, ImgManager imgManager, ILogger<AnalyzeImgController> logger)
+        public AnalyzeImgController(Func<string, IAnalysisService> sentimentAnalyzer, ImgManager imgManager, ILogger<AnalyzeImgController> logger, IEmotionResultService emotionResultService)
         {
             _analysisServiceFactory = sentimentAnalyzer;
+            _emotionResultService = emotionResultService;
             _imgManager = imgManager;
             _logger = logger;
             _logger.LogInformation(">>> AnalyzeImgController initialized");
@@ -66,6 +69,18 @@ namespace deepLearning.Controllers.AnalyzeController
                     error = ex.Message
                 });
             }
+        }
+        [HttpGet("get-emotion-result")]
+        public IActionResult GetEmotionResult()
+        {
+            var emotionResult = _emotionResultService.GetEmotionResult();
+
+            if (emotionResult == null)
+            {
+                return NotFound("No emotion result found.");
+            }
+
+            return Ok(emotionResult);
         }
     }
 }

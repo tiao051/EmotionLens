@@ -2,6 +2,8 @@
 using RabbitMQ.Client;
 using System.Text;
 using Newtonsoft.Json;
+using deepLearning.Models.DTO;
+using deepLearning.Services.EmotionResults;
 
 namespace deepLearning.Services.RabbitMQServices.ImgServices
 {
@@ -10,19 +12,21 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
         Task StartProcessing(CancellationToken stoppingToken);
     }
     public class ImgConsumer : BackgroundService, IImgProcessingConsumerService
-    {
+    {   
         private readonly IConfiguration _configuration;
         private readonly ILogger<ImgConsumer> _logger;
-        private readonly string _imgQueue;
-        public ImgConsumer(IConfiguration configuration, ILogger<ImgConsumer> logger)
+        private readonly string _imgResultQueue;
+        private readonly IEmotionResultService _emotionResultService;
+        public ImgConsumer(IConfiguration configuration, ILogger<ImgConsumer> logger, IEmotionResultService emotionResultService)
         {
             _configuration = configuration;
             _logger = logger;
-            _imgQueue = _configuration["RabbitMQ:ImgQueue"];
+            _emotionResultService = emotionResultService;
+            _imgResultQueue = _configuration["RabbitMQ:ImgResultQueue"];
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Starting the CSVConsumer service.");
+            _logger.LogInformation("Starting the ImgConsumer service.");
             await StartProcessing(stoppingToken);
         }
         public async Task StartProcessing(CancellationToken stoppingToken)
@@ -41,7 +45,7 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                 await using var connection = await factory.CreateConnectionAsync();
                 await using var channel = await connection.CreateChannelAsync();
 
-                await channel.QueueDeclareAsync(queue: _imgQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await channel.QueueDeclareAsync(queue: _imgResultQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (sender, ea) =>
@@ -51,12 +55,13 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                         var body = ea.Body.ToArray();
                         var message = Encoding.UTF8.GetString(body);
 
-                        _logger.LogInformation($"Received message from 'excel_queue': {message}");
+                        _logger.LogInformation($"Received message from '{_imgResultQueue}': {message}");
 
-                        var fileMessage = JsonConvert.DeserializeObject<dynamic>(message);
-                        string filePath = fileMessage?.FilePath;
+                        var fileMessage = JsonConvert.DeserializeObject<EmotionResultDTO>(message);
+                        //đẩy result đi
+                        _emotionResultService.SetEmotionResult(fileMessage);
+                        _logger.LogInformation($"Emotion result - Id: {fileMessage.Id}, Emotion: {fileMessage.Emotion}");
 
-                        _logger.LogInformation($"Received file path: {filePath}");
                     }
                     catch (Exception ex)
                     {
@@ -68,8 +73,8 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                     }
                 };
 
-                _logger.LogInformation("Waiting for file messages from RabbitMQ...");
-                await channel.BasicConsumeAsync(queue: _imgQueue, autoAck: false, consumer: consumer);
+                _logger.LogInformation("Waiting for messages from RabbitMQ...");
+                await channel.BasicConsumeAsync(queue: _imgResultQueue, autoAck: false, consumer: consumer);
             }
             catch (Exception ex)
             {

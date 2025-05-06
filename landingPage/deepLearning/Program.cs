@@ -1,5 +1,6 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
+using deepLearning.Services.EmotionResults;
 using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ExcelService;
 using deepLearning.Services.RabbitMQServices.ImgServices;
@@ -9,15 +10,19 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 var builder = WebApplication.CreateBuilder(args);
 
 // Setup logging
-builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-builder.Logging.SetMinimumLevel(LogLevel.Trace);
+
+// Chỉ ghi lại thông báo từ mã của bạn, không phải từ thư viện hệ thống
+builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
+builder.Logging.AddFilter("System", LogLevel.Warning);
+builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Đăng ký DI
 builder.Services.AddScoped<TextSentimentAnalyzer>(); 
 builder.Services.AddScoped<AudioSentimentAnalyzer>(); 
-builder.Services.AddScoped<ImageSentimentAnalyzer>(); 
+builder.Services.AddScoped<ImageSentimentAnalyzer>();
+builder.Services.AddSingleton<IEmotionResultService, EmotionResultService>();
 
 // Đăng ký Func để sử dụng Factory Injection
 builder.Services.AddScoped<Func<string, IAnalysisService>>(serviceProvider => key =>

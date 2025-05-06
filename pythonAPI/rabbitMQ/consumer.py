@@ -2,6 +2,7 @@ import json
 import pika
 import threading
 import time
+import numpy as np
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
 from rabbitMQ.producer import send_result_to_rabbitmq
 
@@ -58,6 +59,7 @@ def callback_img(ch, method, properties, body):
         if model:
             # Analyze the emotion from the image
             emotion_result = analyze_image_emotion(file_path, model)
+
             print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
             
             result_message = {
@@ -65,6 +67,7 @@ def callback_img(ch, method, properties, body):
                 "Emotion": emotion_result
             }
             
+            print(f"Result message: {result_message}")
             send_result_to_rabbitmq(result_message)
         else:
             print("Failed to load the DeepFace model.")
