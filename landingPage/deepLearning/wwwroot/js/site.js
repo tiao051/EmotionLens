@@ -86,7 +86,6 @@ function isSupportedUrl(url) {
         return false; 
     }
 }
-
 function analyzeSentimentImg() {
     const fileInput = document.getElementById("file-input-image");
     if (!fileInput.files || fileInput.files.length === 0) {
@@ -94,9 +93,26 @@ function analyzeSentimentImg() {
         return;
     }
 
-    const imgData = { image: "Base64 image data or file path here" };
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
 
-    analyzeSentiment("/api/analyzeImg/img", imgData);
+    // Gọi API để upload hình ảnh
+    fetch("/api/analyzeImg/img", {
+        method: "POST",
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message); // Hiển thị thông báo thành công
+                console.log(data.savedPath); // Lưu trữ đường dẫn hoặc xử lý theo ý bạn
+            } else {
+                showToast(data.message); // Hiển thị thông báo lỗi
+            }
+        })
+        .catch(error => {
+            showToast("Error: " + error.message);
+        });
 }
 
 function analyzeSentimentAudio() {

@@ -3,36 +3,33 @@ using RabbitMQ.Client;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace deepLearning.Services.RabbitMQServices.ExcelService
+namespace deepLearning.Services.RabbitMQServices.ImgServices
 {
-    public interface ICSVProcessingConsumerService
+    public interface IImgProcessingConsumerService
     {
         Task StartProcessing(CancellationToken stoppingToken);
     }
-
-    public class CSVConsumer : BackgroundService, ICSVProcessingConsumerService
+    public class ImgConsumer : BackgroundService, IImgProcessingConsumerService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<CSVConsumer> _logger;
-        private readonly string _excelQueueName;
-
-        public CSVConsumer(IConfiguration configuration, ILogger<CSVConsumer> logger)
+        private readonly ILogger<ImgConsumer> _logger;
+        private readonly string _imgQueue;
+        public ImgConsumer(IConfiguration configuration, ILogger<ImgConsumer> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            _excelQueueName = _configuration["RabbitMQ:ExcelQueue"];
+            _imgQueue = _configuration["RabbitMQ:ImgQueue"];
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Starting the CSVConsumer service for CSV.");
+            _logger.LogInformation("Starting the CSVConsumer service.");
             await StartProcessing(stoppingToken);
         }
-
         public async Task StartProcessing(CancellationToken stoppingToken)
         {
             try
             {
-                _logger.LogInformation("Attempting to connect to RabbitMQ...");
+                _logger.LogInformation("Attempting to connect to RabbitMQ for IMG...");
                 var factory = new ConnectionFactory
                 {
                     HostName = _configuration["RabbitMQ:HostName"],
@@ -44,7 +41,7 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
                 await using var connection = await factory.CreateConnectionAsync();
                 await using var channel = await connection.CreateChannelAsync();
 
-                await channel.QueueDeclareAsync(queue: _excelQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                await channel.QueueDeclareAsync(queue: _imgQueue, durable: true, exclusive: false, autoDelete: false, arguments: null);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.ReceivedAsync += async (sender, ea) =>
@@ -72,7 +69,7 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
                 };
 
                 _logger.LogInformation("Waiting for file messages from RabbitMQ...");
-                await channel.BasicConsumeAsync(queue: _excelQueueName, autoAck: false, consumer: consumer);
+                await channel.BasicConsumeAsync(queue: _imgQueue, autoAck: false, consumer: consumer);
             }
             catch (Exception ex)
             {

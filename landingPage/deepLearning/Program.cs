@@ -2,13 +2,15 @@
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.Interfaces;
 using deepLearning.Services.RabbitMQServices.ExcelService;
+using deepLearning.Services.RabbitMQServices.ImgServices;
 using deepLearning.Services.SentimentService;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Setup logging
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole(); 
+builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
@@ -36,11 +38,19 @@ builder.Services.AddScoped<Func<string, IAnalysisService>>(serviceProvider => ke
 builder.Services.AddScoped<ProcessingData>();
 builder.Services.AddScoped<YoutubeCrawlData>();
 
-// đăng ký rabbitMQ services
+// đăng ký rabbitMQ services cho csv
+
 builder.Services.AddHostedService<CSVConsumer>();
 builder.Services.AddScoped<ICSVQueueProducerService, CSVProducer>();
 builder.Services.AddScoped<ICSVExportService, CSVExport>();
 builder.Services.AddTransient<CSVManager>();
+
+// đăng ký rabbtiMQ services cho img
+
+builder.Services.AddHostedService<ImgConsumer>();
+builder.Services.AddScoped<IImgQueueProducerService,ImgProducer>();
+builder.Services.AddScoped<IImgExportService ,ImgExport>();
+builder.Services.AddTransient<ImgManager>();
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
@@ -63,5 +73,9 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+Console.WriteLine("App is starting...");
+logger.LogInformation(">>> App is starting!");
 
 app.Run();
