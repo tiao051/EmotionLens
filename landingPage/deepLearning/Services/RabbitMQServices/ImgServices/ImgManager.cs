@@ -19,9 +19,11 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
             return await _imgExportService.SaveImageAndGetUrl(image);
         }
 
-        public async Task PublishFilePathAsync(string filePath)
+        public async Task<string> PublishFilePathAsync(string filePath)
         {
-            await _imgQueueProducerService.SendImgFileToRabbitMQ(filePath);
+            var fileId = await _imgQueueProducerService.SendImgFileToRabbitMQ(filePath);
+            
+            return fileId;
         }
     }
 }

@@ -104,34 +104,50 @@ function analyzeSentimentImg() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message); // Hiển thị thông báo thành công
-                console.log(data.savedPath); // Lưu trữ đường dẫn hoặc xử lý theo ý bạn
-                fetchEmotionResult();
+                showToast(data.message);
+                console.log(data.fileId);
+                fetchEmotionResultPolling(data.fileId); 
             } else {
-                showToast(data.message); // Hiển thị thông báo lỗi
+                showToast(data.message);
             }
         })
         .catch(error => {
             showToast("Error: " + error.message);
         });
 }
-function fetchEmotionResult() {
-    fetch("/api/analyzeImg/get-emotion-result")
-        .then(response => response.json())
-        .then(data => {
-            console.log("Full response:", data);
-            if (data && data.message === "Success" && data.data && data.data.emotion) {
-                const emotion = data.data.emotion || "No emotion detected";
-                console.log("Detected Emotion:", emotion);
-            } else {
-                console.log("No emotion result available.");
-            }
-        })
-        .catch(error => {
-            console.log("Error fetching emotion result: " + error.message);
-        });
-}
 
+function fetchEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
+    let attempts = 0;
+
+    const poll = () => {
+        fetch(`/api/analyzeImg/get-emotion-result?id=${fileId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Polling response:", data);
+
+                if (data && data.success && data.data && data.data.emotion) {
+                    const emotion = data.data.emotion || "No emotion detected";
+                    console.log("✅ Detected Emotion:", emotion);
+                    showToast(`Detected Emotion: ${emotion}`);
+                } else {
+                    if (attempts < maxAttempts) {
+                        attempts++;
+                        console.log(`⏳ Attempt ${attempts}: result not ready, retrying in ${delayMs}ms...`);
+                        setTimeout(poll, delayMs);
+                    } else {
+                        console.log("❌ Emotion result not available after multiple attempts.");
+                        showToast("Emotion result not available yet. Try again later.");
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("❌ Error fetching emotion result:", error);
+                showToast("Error while checking emotion result.");
+            });
+    };
+
+    poll();
+}
 
 function analyzeSentimentAudio() {
     const fileInput = document.getElementById("audio-input");

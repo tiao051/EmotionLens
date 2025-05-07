@@ -1,6 +1,6 @@
-﻿namespace deepLearning.Services.RabbitMQServices.AudioServices
-{
-    public class AudioConsumer
-    {
-    }
-}
+﻿//namespace deepLearning.Services.RabbitMQServices.AudioServices
+//{
+//    public class AudioConsumer
+//    {
+//    }
+//}

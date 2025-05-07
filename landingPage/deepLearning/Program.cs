@@ -1,6 +1,6 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
-using deepLearning.Services.EmotionResults;
+using deepLearning.Services.EmotionServices;
 using deepLearning.Services.RabbitMQServices.ExcelService;
 using deepLearning.Services.RabbitMQServices.ImgServices;
 using deepLearning.Services.RabbitMQServices.TextServices;
@@ -11,37 +11,44 @@ var builder = WebApplication.CreateBuilder(args);
 // Setup logging
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-
-// Chỉ ghi lại thông báo từ mã của bạn, không phải từ thư viện hệ thống
 builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
 builder.Logging.AddFilter("System", LogLevel.Warning);
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Đăng ký DI
-builder.Services.AddSingleton<IEmotionResultService, EmotionResultService>();
+builder.Services.AddSingleton<IEmotionResultService, EmotionResultsService>();
 builder.Services.AddScoped<ProcessingData>();
 builder.Services.AddScoped<YoutubeCrawlData>();
 
 // đăng ký rabbitMQ services cho csv
-
-builder.Services.AddHostedService<CSVConsumer>();
+//builder.Services.AddHostedService<CSVConsumer>();
 builder.Services.AddScoped<ICSVQueueProducerService, CSVProducer>();
 builder.Services.AddScoped<ICSVExportService, CSVExport>();
 builder.Services.AddTransient<CSVManager>();
 
 // đăng ký rabbtiMQ services cho img
-
-builder.Services.AddHostedService<ImgConsumer>();
+//builder.Services.AddHostedService<ImgConsumer>();
 builder.Services.AddScoped<IImgQueueProducerService,ImgProducer>();
 builder.Services.AddScoped<IImgExportService ,ImgExport>();
 builder.Services.AddTransient<ImgManager>();
 
 //đăng ký rabbitMQ services cho text
-builder.Services.AddHostedService<TextConsumer>();
+//builder.Services.AddHostedService<TextConsumer>();
 builder.Services.AddScoped<ITextQueueProducerService, TextProducer>();
 builder.Services.AddTransient<TextManager>();
 // Add services to the container
 builder.Services.AddControllersWithViews();
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod() 
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -54,17 +61,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
+app.UseCors("AllowAllOrigins");
 app.UseAuthorization();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-Console.WriteLine("App is starting...");
-logger.LogInformation(">>> App is starting!");
-
 app.Run();

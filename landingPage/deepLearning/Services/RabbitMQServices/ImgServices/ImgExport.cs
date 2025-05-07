@@ -1,5 +1,6 @@
 ﻿using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.RabbitMQServices.ExcelService;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Newtonsoft.Json.Linq;
 using System.Text;
 
@@ -22,9 +23,9 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
         {
             try
             {
-                var fileName = Guid.NewGuid() + Path.GetExtension(image.FileName);
+                var fileExtension = Path.GetExtension(image.FileName);
+                var fileName = GenerateFullTimestampId() + fileExtension;
                 var filePath = Path.Combine(_saveDirectory, fileName);
-
                 var directory = Path.GetDirectoryName(filePath);
                 if (!Directory.Exists(directory))
                 {
@@ -43,6 +44,12 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                 _logger.LogError($"Error saving image: {ex.Message} at {ex.StackTrace}");
                 return null;
             }
+        }
+        public string GenerateFullTimestampId()
+        {
+            var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");
+            var random = Guid.NewGuid().ToString("N")[..3];
+            return $"IMG_{timestamp}_{random}";
         }
     }
 }

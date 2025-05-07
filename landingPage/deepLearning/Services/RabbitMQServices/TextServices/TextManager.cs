@@ -9,9 +9,9 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
         {
             _textQueueProducerService = textQueueProducerService;
         }
-        public async Task PublishFilePathAsync(string filePath)
+        public async Task PublishTextMessageAsync(string messageText)
         {
-            await _textQueueProducerService.SendTextFileToRabbitMQ(filePath);
+            await _textQueueProducerService.SendTextFileToRabbitMQ(messageText);
         }
     }
 }

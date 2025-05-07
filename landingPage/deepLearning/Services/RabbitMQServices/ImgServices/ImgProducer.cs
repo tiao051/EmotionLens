@@ -6,7 +6,7 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
 {
     public interface IImgQueueProducerService
     {
-        Task SendImgFileToRabbitMQ(string filePath);
+        Task<string> SendImgFileToRabbitMQ(string filePath);
         string GenerateFullTimestampId();
     }
 
@@ -23,14 +23,14 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
             _imgQueue = _configuration["RabbitMQ:ImgQueue"];
         }
 
-        public async Task SendImgFileToRabbitMQ(string filePath)
+        public async Task<string> SendImgFileToRabbitMQ(string filePath)
         {
             try
             {
                 if (string.IsNullOrEmpty(filePath))
                 {
                     _logger.LogError("File path is null or empty.");
-                    return;
+                    return null;
                 }
 
                 var factory = new ConnectionFactory
@@ -71,10 +71,13 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                     body: body);
 
                 _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}, {FileId}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), fileInfo.Id);
+
+                return fileInfo.Id;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while sending file info to RabbitMQ.");
+                return null;
             }
         }
 

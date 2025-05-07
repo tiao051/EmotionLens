@@ -1,8 +1,7 @@
-﻿using deepLearning.Services.EmotionResults;
+﻿using deepLearning.Services.EmotionServices;
 using deepLearning.Services.RabbitMQServices.ImgServices;
-using Microsoft.AspNetCore.Http;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace deepLearning.Controllers.AnalyzeController
@@ -45,14 +44,24 @@ namespace deepLearning.Controllers.AnalyzeController
                     });
                 }
 
-                await _imgManager.PublishFilePathAsync(savedPath);
+                var fileId = await _imgManager.PublishFilePathAsync(savedPath);
+
+                if (fileId == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Failed to send file to RabbitMQ."
+                    });
+                }
+
                 _logger.LogInformation("Image file has been created and sent successfully.");
 
                 return Ok(new
                 {
                     success = true,
                     message = "Image file created and sent successfully.",
-                    savedPath = savedPath
+                    fileId
                 });
             }
             catch (Exception ex)
@@ -68,27 +77,43 @@ namespace deepLearning.Controllers.AnalyzeController
             }
         }
         [HttpGet("get-emotion-result")]
-        public IActionResult GetEmotionResult()
+        public IActionResult GetEmotionResult([FromQuery] string id)
         {
-            var emotionResult = _emotionResultService.GetEmotionResult();
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Id is required."
+                });
+            }
 
+            var emotionResult = _emotionResultService.GetEmotionResult(id);
+
+            _logger.LogInformation("Checking for emotion result with id: {Id}", id);
+
+            Console.WriteLine($"emotionResult:{emotionResult}");
             if (emotionResult == null)
             {
-                return NotFound("No emotion result found.");
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Emotion img 123 result not found."
+                });
             }
 
             var response = new
             {
-                Message = "Success",
-                Data = new
+                success = true,
+                message = "Success",
+                data = new
                 {
                     emotionResult.Id,
                     emotionResult.Emotion
                 }
             };
 
-            _logger.LogInformation($"Tra ket qua: {JsonSerializer.Serialize(response)}");
-
+            _logger.LogInformation("Returned emotion result: {Result}", JsonSerializer.Serialize(response));
             return Ok(response);
         }
     }

@@ -3,8 +3,10 @@ import pika
 import threading
 import time
 import numpy as np
+import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
-from rabbitMQ.producer import send_result_to_rabbitmq
 
 def get_rabbitmq_connection():
     connection_event = threading.Event()
@@ -17,9 +19,9 @@ def get_rabbitmq_connection():
                 connection = pika.BlockingConnection(pika.ConnectionParameters(
                     host='localhost',
                     port=5672,
-                    credentials=pika.PlainCredentials('admin', 'admin')
+                    credentials=pika.PlainCredentials('test1', 'test1')
                 ))
-                print("✅ Connected to RabbitMQ")
+                print("✅ Connected to RabbitMQ (consumer)")
                 connection_event.set()
                 break
             except pika.exceptions.AMQPConnectionError as e:
@@ -61,14 +63,24 @@ def callback_img(ch, method, properties, body):
             emotion_result = analyze_image_emotion(file_path, model)
 
             print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
-            
+
             result_message = {
                 "Id": file_id,
                 "Emotion": emotion_result
             }
-            
-            print(f"Result message: {result_message}")
-            send_result_to_rabbitmq(result_message)
+
+            # Debugging: Print the data being sent to C#
+            print(f"Data sent to C#: {result_message}")
+
+            # Send result directly to C#
+            url = "https://localhost:44354/api/DataReceive/data"  # URL của API C#
+            headers = {"Content-Type": "application/json"}
+
+            try:
+                response = requests.post(url, json=result_message, headers=headers, verify=False)
+                print(f"Response from C#: {response.status_code}, {response.text}")
+            except requests.exceptions.RequestException as e:
+                print(f"Error sending data to C#: {e}")
         else:
             print("Failed to load the DeepFace model.")
 

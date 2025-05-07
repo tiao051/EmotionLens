@@ -67,6 +67,7 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
                     mandatory: false,
                     basicProperties: properties,
                     body: body);
+                _logger.LogInformation("Published text message to RabbitMQ: {Id}", textInfo.Id);
 
             }
             catch (Exception ex)
