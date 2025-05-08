@@ -1,4 +1,5 @@
-﻿using deepLearning.Controllers.YoutubeController;
+﻿using deepLearning.Configurations;
+using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.EmotionServices;
 using deepLearning.Services.RabbitMQServices.AudioServices;
@@ -18,6 +19,7 @@ builder.Logging.AddFilter("System", LogLevel.Warning);
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Đăng ký DI
+builder.Services.Configure<SecretKeyConfig>(builder.Configuration.GetSection("SecretKeySettings"));
 builder.Services.AddSingleton<IEmotionResultService, EmotionResultsService>();
 builder.Services.AddScoped<ProcessingData>();
 builder.Services.AddScoped<YoutubeCrawlData>();

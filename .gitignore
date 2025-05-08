@@ -1,0 +1,61 @@
+# C# (ASP.NET Core)
+# .NET build directories
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+.idea/
+
+# JetBrains Rider project files
+.idea/
+
+# Windows Installer files
+*.cab
+*.msi
+
+# ASP.NET Core environment files
+appsettings.Development.json
+
+# Python
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VSCode settings for Python
+.vscode/
+
+# pytest cache
+.pytest_cache/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# dotenv file (useful for environment variables that should not be committed)
+.env
+
+# Log files
+*.log
+
+# User-specific file types
+.idea/

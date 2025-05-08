@@ -1,5 +1,7 @@
-﻿using deepLearning.Models.DTO;
+﻿using deepLearning.Configurations;
+using deepLearning.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
 namespace deepLearning.Controllers.YoutubeController
@@ -7,8 +9,12 @@ namespace deepLearning.Controllers.YoutubeController
     [Route("api/[controller]")]
     [ApiController]
     public class YoutubeCrawlData : ControllerBase
-    {   
-        private readonly string apiKey = "AIzaSyArSNYq41lHEnMzzI62FHXNa5pB8SboQs4";
+    {
+        private readonly string _apiKey;
+        public YoutubeCrawlData(IOptions<SecretKeyConfig> config)
+        {
+            _apiKey = config.Value.ApiKey;
+        }
         public async Task<VideoDataDTO> GetVideoInfoAsync(string link)
         {
             if (string.IsNullOrEmpty(link))
@@ -22,7 +28,7 @@ namespace deepLearning.Controllers.YoutubeController
             using (HttpClient client = new HttpClient())
             {
                 // Gọi API lấy video info
-                string videoUrl = $"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id={videoId}&key={apiKey}";
+                string videoUrl = $"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id={videoId}&key={_apiKey}";
                 var videoResponse = await client.GetAsync(videoUrl);
                 var videoJson = await videoResponse.Content.ReadAsStringAsync();
                 var videoObj = JObject.Parse(videoJson);
@@ -33,7 +39,7 @@ namespace deepLearning.Controllers.YoutubeController
 
                 do
                 {
-                    string commentUrl = $"https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId={videoId}&key={apiKey}&maxResults=100";
+                    string commentUrl = $"https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId={videoId}&key={_apiKey}&maxResults=100";
                     if (!string.IsNullOrEmpty(nextPageToken))
                     {
                         commentUrl += $"&pageToken={nextPageToken}";
@@ -84,7 +90,7 @@ namespace deepLearning.Controllers.YoutubeController
                 };
             }
         }
-
+        
         private string ExtractVideoId(string link)
         {
             try

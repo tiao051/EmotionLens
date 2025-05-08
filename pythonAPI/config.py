@@ -1,8 +1,12 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 RABBITMQ_CONFIG = {
     "host": "localhost",
     "port": 5672,
     "username": "test1",
-    "password": "test1"
+    "password": os.getenv('RABBITMQ_PASSWORD')
 }
 
 API_ENDPOINTS = {
@@ -13,7 +17,7 @@ API_ENDPOINTS = {
 }
 
 TIKTOK_API_CONFIG = {
-    "ms_token": "La7TPOQLrbuzdv477hvZ2Xsw5HrZMGHh3C_0IDhx4VlbiaSvEWI3BUWS2Sg0_MbnIMXEdrB9w-r0_LSajVIrVXzcbRxclbjyoMmS7FQ-y4QcwBF4MdaRqU6xMHO-wUPD4kKeNcQzYOOpoqRatMyf6EY=",
+    "ms_token": os.getenv('TIKTOK_MS_TOKEN'),
     "save_csv_path": "D:\\Deep_Learning\\dataSet\\exportData\\tiktokExport"
 }
 
