@@ -1,4 +1,5 @@
 import threading
+import asyncio
 from rabbitMQ.consumer import start_consumer
 from rabbitMQ.consumer import callback_txt, callback_audio, callback_img, callback_url
 
@@ -19,10 +20,10 @@ def train_img_emotion_model():
 
 def start_all_consumers():
     consumers = [
-        {"queue": "txt_queue", "callback": callback_txt},
-        {"queue": "audio_queue", "callback": callback_audio},
-        {"queue": "img_queue", "callback": callback_img},
-        {"queue": "csv_queue", "callback": callback_url}
+        {"queue": "txt_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_txt(ch, m, p, b))},
+        {"queue": "audio_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_audio(ch, m, p, b))},
+        {"queue": "img_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_img(ch, m, p, b))},
+        {"queue": "csv_queue", "callback": callback_url} 
     ]
 
     threads = []

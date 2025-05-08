@@ -1,9 +1,8 @@
 import json
 import pika
 import threading
+import aiohttp
 import time
-import numpy as np
-import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
@@ -48,7 +47,7 @@ def callback_url(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"File with ID: {file_id} processed and acknowledged.")
 
-def callback_img(ch, method, properties, body):
+async def callback_img(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     file_path = message.get("FilePath")
@@ -71,15 +70,8 @@ def callback_img(ch, method, properties, body):
             }
             print(f"Data sent to C#: {result_message}")
 
-            url = API_ENDPOINTS["image"]
+            await send_to_api_async(result_message, API_ENDPOINTS["image"])
             
-            headers = {"Content-Type": "application/json"}
-
-            try:
-                response = requests.post(url, json=result_message, headers=headers, verify=False)
-                print(f"Response from C#: {response.status_code}, {response.text}")
-            except requests.exceptions.RequestException as e:
-                print(f"Error sending data to C#: {e}")
         else:
             print("Failed to load the DeepFace model.")
 
@@ -90,7 +82,7 @@ def callback_img(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Image with ID: {file_id} processed and acknowledged.")
     
-def callback_txt(ch, method, properties, body):
+async def callback_txt(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     text_content = message.get("TextContent")
@@ -109,15 +101,7 @@ def callback_txt(ch, method, properties, body):
         }
         print(f"Data sent to C#: {result_message}")
 
-        url = API_ENDPOINTS["text"]
-
-        headers = {"Content-Type": "application/json"}
-
-        try:
-            response = requests.post(url, json=result_message, headers=headers, verify=False)
-            print(f"Response from C#: {response.status_code}, {response.text}")
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending data to C#: {e}")
+        await send_to_api_async(result_message, API_ENDPOINTS["text"])
 
     except Exception as e:
         print(f"Error processing text with ID {file_id}: {e}")
@@ -126,7 +110,7 @@ def callback_txt(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Text with ID: {file_id} processed and acknowledged.")
 
-def callback_audio(ch, method, properties, body):
+async def callback_audio(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     text_content = message.get("AudioContent")
@@ -145,15 +129,7 @@ def callback_audio(ch, method, properties, body):
         }
         print(f"Data sent to C#: {result_message}")
 
-        url = API_ENDPOINTS["audio"]
-
-        headers = {"Content-Type": "application/json"}
-
-        try:
-            response = requests.post(url, json=result_message, headers=headers, verify=False)
-            print(f"Response from C#: {response.status_code}, {response.text}")
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending data to C#: {e}")
+        await send_to_api_async(result_message, API_ENDPOINTS["audio"])
 
     except Exception as e:
         print(f"Error processing text with ID {file_id}: {e}")
@@ -183,6 +159,15 @@ def start_consumer(queue_name, callback):
         connection.close()
         print(f"✅ Closed connection to RabbitMQ {queue_name}.")
         
-
-        
+async def send_to_api_async(data, api_url):
+    headers = {"Content-Type": "application/json"}
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(api_url, json=data, headers=headers, ssl=False) as response:
+                if response.status == 200:
+                    print(f"Successfully sent data to C#: {response.status}, {await response.text()}")
+                else:
+                    print(f"Failed to send data to C#: {response.status}, {await response.text()}")
+        except Exception as e:
+            print(f"Error sending data to C#: {e}")
         
