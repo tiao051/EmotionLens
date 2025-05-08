@@ -7,6 +7,8 @@ import requests
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
+from config import RABBITMQ_CONFIG, API_ENDPOINTS, MODEL_NAME
+# from consumer_utils import send_result_to_api
 
 def get_rabbitmq_connection():
     connection_event = threading.Event()
@@ -17,9 +19,12 @@ def get_rabbitmq_connection():
         while True:
             try:
                 connection = pika.BlockingConnection(pika.ConnectionParameters(
-                    host='localhost',
-                    port=5672,
-                    credentials=pika.PlainCredentials('test1', 'test1')
+                    host=RABBITMQ_CONFIG["host"],
+                    port=RABBITMQ_CONFIG["port"],
+                    credentials=pika.PlainCredentials(
+                        RABBITMQ_CONFIG["username"],
+                        RABBITMQ_CONFIG["password"]
+                    )
                 ))
                 print("✅ Connected to RabbitMQ (consumer)")
                 connection_event.set()
@@ -27,14 +32,12 @@ def get_rabbitmq_connection():
             except pika.exceptions.AMQPConnectionError as e:
                 print(f"❌ Failed to connect to RabbitMQ: {e}. Retrying in 5 seconds...")
                 time.sleep(5)
-
     connection_thread = threading.Thread(target=connect)
     connection_thread.start()
-    threading.Thread(target=connect).start()
     connection_event.wait()
     return connection
 
-def callback(ch, method, properties, body):
+def callback_url(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     file_path = message.get("FilePath")
@@ -55,8 +58,7 @@ def callback_img(ch, method, properties, body):
 
     try:
         # Load the DeepFace model
-        model_name = "VGG-Face"
-        model = load_or_download_model(model_name)
+        model = load_or_download_model(MODEL_NAME)
 
         if model:
             emotion_result = analyze_image_emotion(file_path, model)
@@ -69,7 +71,8 @@ def callback_img(ch, method, properties, body):
             }
             print(f"Data sent to C#: {result_message}")
 
-            url = "https://localhost:44354/api/DataReceive/data-img" 
+            url = API_ENDPOINTS["image"]
+            
             headers = {"Content-Type": "application/json"}
 
             try:
@@ -87,7 +90,7 @@ def callback_img(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Image with ID: {file_id} processed and acknowledged.")
     
-def call_back_txt(ch, method, properties, body):
+def callback_txt(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     text_content = message.get("TextContent")
@@ -106,7 +109,8 @@ def call_back_txt(ch, method, properties, body):
         }
         print(f"Data sent to C#: {result_message}")
 
-        url = "https://localhost:44354/api/DataReceive/data-text" 
+        url = API_ENDPOINTS["text"]
+
         headers = {"Content-Type": "application/json"}
 
         try:
@@ -122,87 +126,7 @@ def call_back_txt(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Text with ID: {file_id} processed and acknowledged.")
 
-def start_url_rabbitmq_consumer():
-    print("🚀 Starting RabbitMQ consumer for url...")
-    connection = get_rabbitmq_connection()
-    if connection is None:
-        print("❌ Failed to connect to RabbitMQ Url.")
-        return
-
-    channel = connection.channel()
-    channel.queue_declare(queue='excel_queue', durable=True)
-    channel.basic_consume(queue='excel_queue', on_message_callback=callback, auto_ack=False)
-
-    print("⏳ Waiting for messages in txt queue. Press CTRL+C to exit.")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("🛑 Stopping consumer...")
-        channel.stop_consuming()
-    finally:
-        connection.close()
-
-def start_img_queue_consumer():
-    print("🚀 Starting RabbitMQ consumer for img_queue...")
-    connection = get_rabbitmq_connection()
-    if connection is None:
-        print("❌ Failed to connect to RabbitMQ Img.")
-        return
-
-    channel = connection.channel()
-    channel.queue_declare(queue='img_queue', durable=True)
-    channel.basic_consume(queue='img_queue', on_message_callback=callback_img, auto_ack=False)
-
-    print("⏳ Waiting for messages in img_queue. Press CTRL+C to exit.")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("🛑 Stopping img_queue consumer...")
-        channel.stop_consuming()
-    finally:
-        connection.close()
-
-def start_txt_rabbitmq_consumer():
-    print("🚀 Starting RabbitMQ consumer for txt_queue...")
-    connection = get_rabbitmq_connection()
-    if connection is None:
-        print("❌ Failed to connect to RabbitMQ TxT.")
-        return
-
-    channel = connection.channel()
-    channel.queue_declare(queue='txt_queue', durable=True)
-    channel.basic_consume(queue='txt_queue', on_message_callback=call_back_txt, auto_ack=False)
-
-    print("⏳ Waiting for messages in txt_queue. Press CTRL+C to exit.")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("🛑 Stopping txt_queue consumer...")
-        channel.stop_consuming()
-    finally:
-        connection.close()
-
-def start_audio_rabbitmq_consumer():
-    print("🚀 Starting RabbitMQ consumer for audio_queue...")
-    connection = get_rabbitmq_connection()
-    if connection is None:
-        print("❌ Failed to connect to RabbitMQ Audio.")
-        return
-
-    channel = connection.channel()
-    channel.queue_declare(queue='audio_queue', durable=True)
-    channel.basic_consume(queue='audio_queue', on_message_callback=call_back_audio, auto_ack=False)
-
-    print("⏳ Waiting for messages in audio_queue. Press CTRL+C to exit.")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("🛑 Stopping audio_queue consumer...")
-        channel.stop_consuming()
-    finally:
-        connection.close()
-        
-def call_back_audio(ch, method, properties, body):
+def callback_audio(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
     text_content = message.get("AudioContent")
@@ -221,7 +145,8 @@ def call_back_audio(ch, method, properties, body):
         }
         print(f"Data sent to C#: {result_message}")
 
-        url = "https://localhost:44354/api/DataReceive/data-audio" 
+        url = API_ENDPOINTS["audio"]
+
         headers = {"Content-Type": "application/json"}
 
         try:
@@ -236,4 +161,28 @@ def call_back_audio(ch, method, properties, body):
     # Acknowledge the message
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Audio with ID: {file_id} processed and acknowledged.")
+    
+def start_consumer(queue_name, callback):
+    print(f"🚀 Starting RabbitMQ consumer for {queue_name}...")
+    connection = get_rabbitmq_connection()
+    if connection is None:
+        print(f"❌ Failed to connect to RabbitMQ {queue_name}.")
+        return
+
+    channel = connection.channel()
+    channel.queue_declare(queue=queue_name, durable=True)
+    channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=False)
+
+    print(f"⏳ Waiting for messages in {queue_name}. Press CTRL+C to exit.")
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        print(f"🛑 Stopping {queue_name} consumer...")
+        channel.stop_consuming()
+    finally:
+        connection.close()
+        print(f"✅ Closed connection to RabbitMQ {queue_name}.")
+        
+
+        
         

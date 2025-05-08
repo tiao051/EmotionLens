@@ -8,7 +8,7 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (Input, Conv1D, MaxPooling1D, Dropout,
                                      BatchNormalization, LSTM, Bidirectional,
-                                     Dense, Flatten, Attention)
+                                     Dense, Flatten, MultiHeadAttention)
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.regularizers import l2
 
@@ -88,10 +88,13 @@ class_weight_dict = dict(enumerate(class_weights))
 
 
 ###############################################################
-# 8. Xây dựng model CNN + BiLSTM + Attention (nhẹ, tối ưu tốc độ)
+###############################################################
+# 8. Xây dựng model CNN + BiLSTM + MultiHeadAttention (cải tiến)
+###############################################################
 ###############################################################
 input_shape = X.shape[1:]
 inp = Input(shape=input_shape)
+
 
 # 3 lớp Conv1D trích xuất đặc trưng cục bộ
 x = Conv1D(32, kernel_size=5, activation='relu', padding='same', kernel_regularizer=l2(1e-4))(inp)
@@ -99,7 +102,7 @@ x = BatchNormalization()(x)
 x = MaxPooling1D(pool_size=2)(x)
 x = Dropout(0.15)(x)
 
-x = Conv1D(64, kernel_size=3, activation=   'relu', padding='same', kernel_regularizer=l2(1e-4))(x)
+x = Conv1D(64, kernel_size=3, activation='relu', padding='same', kernel_regularizer=l2(1e-4))(x)
 x = BatchNormalization()(x)
 x = MaxPooling1D(pool_size=2)(x)
 x = Dropout(0.15)(x)
@@ -115,8 +118,9 @@ x = Dropout(0.2)(x)
 x = Bidirectional(LSTM(16, return_sequences=True))(x)
 x = Dropout(0.2)(x)
 
-# Attention layer giúp model tập trung vào vùng quan trọng
-attn = Attention()([x, x])
+# MultiHeadAttention (cải tiến so với Attention truyền thống)
+# Số head = 4, key_dim = 32 (có thể điều chỉnh)
+attn = MultiHeadAttention(num_heads=4, key_dim=32)(x, x)
 x = Flatten()(attn)
 
 # Dense head phân loại
@@ -140,8 +144,8 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 ###############################################################
 # 10. Callback chống overfit và tối ưu learning rate
 ###############################################################
-early_stop = EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=1e-6)
+early_stop = EarlyStopping(monitor='val_accuracy', patience=6, restore_best_weights=True, mode='max')
+reduce_lr = ReduceLROnPlateau(monitor='val_accuracy', factor=0.5, patience=2, min_lr=1e-6, mode='max')
 
 
 
@@ -161,9 +165,12 @@ y_pred = np.argmax(model.predict(X_test), axis=1)
 y_true = np.argmax(y_test, axis=1)
 
 
+
 ###############################################################
-# 12. Đánh giá, báo cáo và lưu model
+# 12. Đánh giá, báo cáo, lưu model và vẽ biểu đồ loss/accuracy
 ###############################################################
+import matplotlib.pyplot as plt
+
 loss, acc = model.evaluate(X_test, y_test)
 print(f"\n🎯 Test accuracy: {acc:.2%}")
 
@@ -178,3 +185,25 @@ MODEL_OUT = os.path.join(SCRIPT_DIR, "..", "..", "crema_d_audio_emotion_bilstm_a
 MODEL_OUT = os.path.normpath(MODEL_OUT)
 model.save(MODEL_OUT)
 print(f"✅ Model saved to {MODEL_OUT}")
+
+# Vẽ biểu đồ loss/accuracy
+plt.figure(figsize=(12,5))
+plt.subplot(1,2,1)
+plt.plot(history.history['loss'], label='Train loss')
+plt.plot(history.history['val_loss'], label='Val loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss per epoch')
+plt.legend()
+
+plt.subplot(1,2,2)
+plt.plot(history.history['accuracy'], label='Train acc')
+plt.plot(history.history['val_accuracy'], label='Val acc')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Accuracy per epoch')
+plt.legend()
+
+plt.tight_layout()
+plt.savefig(os.path.join(SCRIPT_DIR, '..', '..', 'train_history_plot.png'))
+plt.show()
