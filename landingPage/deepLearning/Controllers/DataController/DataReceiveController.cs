@@ -52,12 +52,26 @@ namespace deepLearning.Controllers.DataController
             Console.WriteLine("ReceiveData audio actived");
             if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
             {
-                return BadRequest("Invalid text audio.");
+                return BadRequest("Invalid text data.");
             }
 
             _emotionResultService.SaveEmotionResult(data);
 
             _logger.LogInformation("Saved audio emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
+            return Ok("Data audio received.");
+        }
+        [HttpPost("data-tiktok")]
+        public IActionResult ReceiveDataTiktok([FromBody] EmotionResultDTO data)
+        {
+            Console.WriteLine("ReceiveData tiktok actived");
+            if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
+            {
+                return BadRequest("Invalid tiktok data.");
+            }
+
+            _emotionResultService.SaveEmotionResult(data);
+
+            _logger.LogInformation("Saved tiktok data emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
             return Ok("Data audio received.");
         }
     }

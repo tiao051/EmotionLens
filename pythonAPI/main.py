@@ -1,7 +1,7 @@
 import threading
 import asyncio
 from rabbitMQ.consumer import start_consumer
-from rabbitMQ.consumer import callback_txt, callback_audio, callback_img, callback_url
+from rabbitMQ.consumer import callback_txt, callback_audio, callback_img, callback_url, callback_tiktok
 
 # Optional: mô hình huấn luyện hình ảnh
 def train_img_emotion_model():
@@ -23,6 +23,7 @@ def start_all_consumers():
         {"queue": "txt_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_txt(ch, m, p, b))},
         {"queue": "audio_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_audio(ch, m, p, b))},
         {"queue": "img_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_img(ch, m, p, b))},
+        {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: asyncio.run(callback_tiktok(ch, m, p, b))},
         {"queue": "csv_queue", "callback": callback_url} 
     ]
 

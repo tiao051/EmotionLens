@@ -137,6 +137,34 @@ async def callback_audio(ch, method, properties, body):
     # Acknowledge the message
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Audio with ID: {file_id} processed and acknowledged.")
+
+async def callback_tiktok(ch, method, properties, body):
+    message = json.loads(body)
+    file_id = message.get("Id")
+    url_content = message.get("UrlContent")
+
+    print(f"Received ID: {file_id}")
+    print(f"Received tiktok url content: {url_content}")
+    
+    try:
+        emotion_result = "Happy"  # Hardcoded result for testing
+
+        print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
+
+        result_message = {
+            "Id": file_id,
+            "Emotion": emotion_result
+        }
+        print(f"Data sent to C#: {result_message}")
+
+        await send_to_api_async(result_message, API_ENDPOINTS["tiktok"])
+
+    except Exception as e:
+        print(f"Error processing text with ID {file_id}: {e}")
+
+    # Acknowledge the message
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+    print(f"Tiktok URL with ID: {file_id} processed and acknowledged.")
     
 def start_consumer(queue_name, callback):
     print(f"🚀 Starting RabbitMQ consumer for {queue_name}...")
@@ -149,7 +177,7 @@ def start_consumer(queue_name, callback):
     channel.queue_declare(queue=queue_name, durable=True)
     channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=False)
 
-    print(f"⏳ Waiting for messages in {queue_name}. Press CTRL+C to exit.")
+    print(f"⏳ Waiting for messages in {queue_name}.")
     try:
         channel.start_consuming()
     except KeyboardInterrupt:
