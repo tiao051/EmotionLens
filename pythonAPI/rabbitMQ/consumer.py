@@ -6,8 +6,8 @@ import time
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
-from config import RABBITMQ_CONFIG, API_ENDPOINTS, MODEL_NAME
-# from consumer_utils import send_result_to_api
+from config import RABBITMQ_CONFIG, API_ENDPOINTS, MODEL_NAME, TIKTOK_API_CONFIG
+from tiktokAPI.tiktokcrawldata import extract_video_id, get_comments 
 
 def get_rabbitmq_connection():
     connection_event = threading.Event()
@@ -78,7 +78,6 @@ async def callback_img(ch, method, properties, body):
     except Exception as e:
         print(f"Error processing image with ID {file_id}: {e}")
 
-    # Acknowledge the message
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Image with ID: {file_id} processed and acknowledged.")
     
@@ -91,7 +90,7 @@ async def callback_txt(ch, method, properties, body):
     print(f"Received text content: {text_content}")
 
     try:
-        emotion_result = "Happy"  # Hardcoded result for testing
+        emotion_result = "Happy" 
 
         print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
 
@@ -106,7 +105,7 @@ async def callback_txt(ch, method, properties, body):
     except Exception as e:
         print(f"Error processing text with ID {file_id}: {e}")
 
-    # Acknowledge the message
+
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Text with ID: {file_id} processed and acknowledged.")
 
@@ -119,7 +118,7 @@ async def callback_audio(ch, method, properties, body):
     print(f"Received audio content: {text_content}")
 
     try:
-        emotion_result = "Happy"  # Hardcoded result for testing
+        emotion_result = "Happy"  
 
         print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
 
@@ -134,35 +133,35 @@ async def callback_audio(ch, method, properties, body):
     except Exception as e:
         print(f"Error processing text with ID {file_id}: {e}")
 
-    # Acknowledge the message
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Audio with ID: {file_id} processed and acknowledged.")
 
 async def callback_tiktok(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
-    url_content = message.get("UrlContent")
-
-    print(f"Received ID: {file_id}")
-    print(f"Received tiktok url content: {url_content}")
+    url_content = message.get("Url")
     
-    try:
-        emotion_result = "Happy"  # Hardcoded result for testing
+    if url_content:
+        print(f"Received ID: {file_id}")
+        print(f"Received URL: {url_content}")
+        
+        video_id = extract_video_id(url_content)
+        if not video_id:
+            print("❌ Không thể lấy video_id từ URL.")
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            return
 
-        print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
+        print(f"Extracted video ID: {video_id}")
+        
+        ms_token = TIKTOK_API_CONFIG["ms_token"]
+        output_path = f"comments_{video_id}.csv"  
+        
+        try:
+            await get_comments(video_id, ms_token, output_path)
+            print(f"Successfully crawled comments for video ID {video_id}")
+        except Exception as e:
+            print(f"Error crawling TikTok data for video ID {video_id}: {e}")
 
-        result_message = {
-            "Id": file_id,
-            "Emotion": emotion_result
-        }
-        print(f"Data sent to C#: {result_message}")
-
-        await send_to_api_async(result_message, API_ENDPOINTS["tiktok"])
-
-    except Exception as e:
-        print(f"Error processing text with ID {file_id}: {e}")
-
-    # Acknowledge the message
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"Tiktok URL with ID: {file_id} processed and acknowledged.")
     

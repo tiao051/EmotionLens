@@ -72,7 +72,7 @@ namespace deepLearning.Controllers.DataController
             _emotionResultService.SaveEmotionResult(data);
 
             _logger.LogInformation("Saved tiktok data emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
-            return Ok("Data audio received.");
+            return Ok("Data tiktok received.");
         }
     }
 }
