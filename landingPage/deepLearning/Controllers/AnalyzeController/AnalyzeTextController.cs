@@ -1,7 +1,5 @@
-﻿using deepLearning.Controllers.AnalyzeController;
-using deepLearning.Models.DTO;
+﻿using deepLearning.Models.DTO;
 using deepLearning.Services.EmotionServices;
-using deepLearning.Services.RabbitMQServices.ImgServices;
 using deepLearning.Services.RabbitMQServices.TextServices;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -15,8 +13,9 @@ namespace deepLearning.Controllers.AnalyzeFolder
         private readonly TextManager _textManager;
         private readonly ILogger<AnalyzeTextController> _logger;
         private readonly IEmotionResultService _emotionTextResultService;
-        public AnalyzeTextController(TextManager textManager, ILogger<AnalyzeTextController> logger)
+        public AnalyzeTextController(TextManager textManager, ILogger<AnalyzeTextController> logger, IEmotionResultService emotionTextResultService)
         {
+            _emotionTextResultService = emotionTextResultService;
             _textManager = textManager;
             _logger = logger;
         }
@@ -28,13 +27,14 @@ namespace deepLearning.Controllers.AnalyzeFolder
             {
                 return BadRequest(new { success = false, message = "Input text cannot be empty." });
             }
-            await _textManager.PublishTextMessageAsync(request.Text);
+            var fileId = await _textManager.PublishTextMessageAsync(request.Text);
             _logger.LogInformation("Text message has been sent successfully.");
 
             return Ok(new
             {
                 success = true,
-                message = "Text analysis completed."
+                message = "Text analysis completed.",
+                fileId
             });
         }
         [HttpGet("get-text-emotion-result")]
@@ -49,10 +49,16 @@ namespace deepLearning.Controllers.AnalyzeFolder
             {
                 var emotionResult = _emotionTextResultService.GetEmotionResult(id);
 
+                if (emotionResult == null) 
+                {
+                    return NotFound("No emotion result found for the provided ID.");
+                }
+
                 var response = new
                 {
-                    Message = "Success",
-                    Data = new
+                    success = true,
+                    message = "Success",
+                    data = new
                     {
                         emotionResult.Id,
                         emotionResult.Emotion

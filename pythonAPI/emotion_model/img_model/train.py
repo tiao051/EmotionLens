@@ -29,7 +29,7 @@ def create_data_generators(train_dir, test_dir):
         target_size=(48, 48),
         color_mode='grayscale',
         batch_size=64,
-        class_mode='categori\cal'
+        class_mode='categorical'
     )
 
     return train_generator, test_generator

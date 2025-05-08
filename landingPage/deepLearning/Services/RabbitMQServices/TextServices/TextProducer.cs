@@ -7,7 +7,7 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
 {
     public interface ITextQueueProducerService
     {
-        Task SendTextFileToRabbitMQ(string filePath);
+        Task<string> SendTextFileToRabbitMQ(string messageText);
         string GenerateTextMessageId();
     }
     public class TextProducer : ITextQueueProducerService
@@ -21,14 +21,14 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
             _logger = logger;
             _textQueue = _configuration["RabbitMQ:TextQueue"];
         }
-        public async Task SendTextFileToRabbitMQ(string messageText)
+        public async Task<string> SendTextFileToRabbitMQ(string messageText)
         {
             try
             {
                 if (string.IsNullOrEmpty(messageText))
                 {
                     _logger.LogError("text is null or empty.");
-                    return;
+                    return null;
                 }
 
                 var factory = new ConnectionFactory
@@ -67,14 +67,17 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
                     mandatory: false,
                     basicProperties: properties,
                     body: body);
-                _logger.LogInformation("Published text message to RabbitMQ: {Id}", textInfo.Id);
 
+                _logger.LogInformation("Published text message to RabbitMQ: {Id}", textInfo.Id);
+                return textInfo.Id;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while sending text file info to RabbitMQ.");
+                return null;
             }
         }
+
         public string GenerateTextMessageId()
         {
             var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");

@@ -28,7 +28,6 @@
     }
 }
 
-
 function validateInput(inputData, toastMessage) {
     if (!inputData || !inputData.trim()) {
         showToast(toastMessage);
@@ -39,12 +38,64 @@ function validateInput(inputData, toastMessage) {
 
 function analyzeSentimentComment() {
     const inputText = document.getElementById("input-text").value;
-    console.log("Text input: ", inputText);  // Kiểm tra đầu vào
+    console.log("Text input: ", inputText); 
 
-    if (!validateInput(inputText, "Please enter some text for analysis.")) return;
+    if (!validateInput(inputText, "Please enter some text for analysis."))
+        return;
 
     console.log("Sending request to API...");
-    analyzeSentiment("/api/analyzeText/comment", { text: inputText });
+    fetch("/api/analyzeText/comment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text: inputText }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success'); 
+                console.log(data.fileId);
+                fetchTextEmotionResultPolling(data.fileId);
+            } else {
+                showToast(data.message, 'error'); 
+            }
+        })
+        .catch(error => {
+            showToast("Error: " + error.message);
+        });
+}
+function fetchTextEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
+    let attempts = 0;
+
+    const poll = () => {
+        fetch(`/api/analyzeText/get-text-emotion-result?id=${fileId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Polling response:", data);
+
+                if (data && data.success && data.data && data.data.emotion) {
+                    const emotion = data.data.emotion || "No emotion detected";
+                    console.log("✅ Detected Emotion:", emotion);
+                    showToast(`Detected Emotion: ${emotion}`, 'success');
+                } else {
+                    if (attempts < maxAttempts) {
+                        attempts++;
+                        console.log(`⏳ Attempt ${attempts}: result not ready, retrying in ${delayMs}ms...`);
+                        setTimeout(poll, delayMs);
+                    } else {
+                        console.log("❌ Emotion result not available after multiple attempts.");
+                        showToast("Emotion result not available yet. Try again later.", 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("❌ Error fetching emotion result:", error);
+                showToast("Error while checking emotion result.");
+            });
+    };
+
+    poll();
 }
 function analyzeSentimentUrl() {
     const url = document.getElementById("input-url").value.trim();
@@ -60,7 +111,7 @@ function analyzeSentimentUrl() {
     }
 
     if (!isSupportedUrl(url)) {
-        showToast("❌ Only YouTube or Facebook URLs are supported.");
+        showToast("❌ Only YouTube or Tiktok URLs are supported.");
         return;
     }
 
@@ -68,7 +119,6 @@ function analyzeSentimentUrl() {
 }
 
 function isValidUrl(url) {
-    // Kiểm tra định dạng URL
     const regex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
     return regex.test(url);
 }
@@ -80,8 +130,7 @@ function isSupportedUrl(url) {
 
         return hostname.includes("youtube.com") ||
             hostname.includes("youtu.be") ||
-            hostname.includes("facebook.com") ||
-            hostname.includes("fb.watch");
+            hostname.includes("tiktok.com");
     } catch (error) {
         return false; 
     }
@@ -104,11 +153,11 @@ function analyzeSentimentImg() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message);
+                showToast(data.message, 'success');
                 console.log(data.fileId);
-                fetchEmotionResultPolling(data.fileId); 
+                fetchEmotionResultPolling(data.fileId);
             } else {
-                showToast(data.message);
+                showToast(data.message, 'error'); 
             }
         })
         .catch(error => {
@@ -128,7 +177,7 @@ function fetchEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
                 if (data && data.success && data.data && data.data.emotion) {
                     const emotion = data.data.emotion || "No emotion detected";
                     console.log("✅ Detected Emotion:", emotion);
-                    showToast(`Detected Emotion: ${emotion}`);
+                    showToast(`Detected Emotion: ${emotion}`, 'success');
                 } else {
                     if (attempts < maxAttempts) {
                         attempts++;
@@ -136,7 +185,7 @@ function fetchEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
                         setTimeout(poll, delayMs);
                     } else {
                         console.log("❌ Emotion result not available after multiple attempts.");
-                        showToast("Emotion result not available yet. Try again later.");
+                        showToast("Emotion result not available yet. Try again later.", 'error');
                     }
                 }
             })
@@ -173,10 +222,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (analyzeAudioBtn) analyzeAudioBtn.addEventListener("click", analyzeSentimentAudio);
 });
 
-function showToast(message) {
+function showToast(message, type = 'error') {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.classList.add('toast');
+
+    if (type === 'success') {
+        toast.style.backgroundColor = '#4CAF50'; 
+    } else if (type === 'warning') {
+        toast.style.backgroundColor = '#FF9800'; 
+    } else {
+        toast.style.backgroundColor = '#f44336'; 
+    }
+
     toast.innerHTML = `${message} <span class="close-btn" onclick="closeToast(this)">X</span>`;
 
     toastContainer.appendChild(toast);

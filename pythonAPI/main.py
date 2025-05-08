@@ -2,8 +2,9 @@ import threading
 import asyncio
 from tiktokAPI.tiktokcrawldata import get_comments
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
-from rabbitMQ.consumer import start_rabbitmq_consumer
+from rabbitMQ.consumer import start_url_rabbitmq_consumer
 from rabbitMQ.consumer import start_img_queue_consumer
+from rabbitMQ.consumer import start_txt_rabbitmq_consumer
 from emotion_model.img_model.train import train_model
 from emotion_model.img_model.train import create_data_generators
 from emotion_model.img_model.predict import predict_emotion
@@ -14,11 +15,14 @@ from tensorflow.keras.models import load_model # type: ignore
 # from model.audio_model.predict import evaluate_audio_model
 
 # Hàm chạy consumer trong một thread riêng
-def run_rabbitmq_consumer():
-    start_rabbitmq_consumer()
+def run_url_rabbitmq_consumer():
+    start_url_rabbitmq_consumer()
 
 def run_rabbitmq_img_consumer():
     start_img_queue_consumer()
+    
+def run_txt_rabbitmq_consumer():
+    start_txt_rabbitmq_consumer()
 # Hàm huấn luyện mô hình
 def train_img_emotion_model():
     train_dir = 'D:/Deep_Learning/dataSet/fer2013/train'
@@ -32,31 +36,15 @@ def train_img_emotion_model():
     loaded_model = load_model('emotion_model.h5')
     predict_emotion(loaded_model, img_path)
 
-# Phân tích cảm xúc từ hình ảnh với DeepFace
-# def analyze_emotion_from_image(image_path): 
-#     model_name = "VGG-Face"
-#     model = load_or_download_model(model_name)
-    
-#     if model:
-#         analyze_image_emotion(image_path, model)
-#     else:
-#         print("Model loading failed. Cannot proceed.")
-
-# def analyze_emotion_from_audio(features_path, labels_path, model_path):
-#     audio_model = load_model(model_path)
-
-#     _, X_test, _, y_test, _, label_encoder = prepare_audio_data(features_path, labels_path)
-
-#     y_pred, y_true = evaluate_audio_model(audio_model, X_test, y_test, label_encoder)
-#     return y_pred, y_true
-    
-
 if __name__ == "__main__":
-    consumer_thread = threading.Thread(target=run_rabbitmq_consumer)
+    consumer_thread = threading.Thread(target=run_url_rabbitmq_consumer)
     consumer_thread.start()
 
     img_consumer_thread = threading.Thread(target=run_rabbitmq_img_consumer)
     img_consumer_thread.start()
+    
+    txt_consumer_thread = threading.Thread(target=run_txt_rabbitmq_consumer)
+    txt_consumer_thread.start()
 
     # asyncio.run(get_comments())  # Nếu cần crawling comment
 

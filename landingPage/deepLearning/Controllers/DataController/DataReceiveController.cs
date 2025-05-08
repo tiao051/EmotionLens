@@ -18,19 +18,34 @@ namespace deepLearning.Controllers.DataController
             _logger = logger;
         }
 
-        [HttpPost("data")]
-        public IActionResult ReceiveData([FromBody] EmotionResultDTO data)
+        [HttpPost("data-img")]
+        public IActionResult ReceiveDataImg([FromBody] EmotionResultDTO data)
         {
-            Console.WriteLine("ReceiveData actived");
+            Console.WriteLine("ReceiveData img actived");
             if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
             {
-                return BadRequest("Invalid data.");
+                return BadRequest("Invalid img data.");
             }
 
             _emotionResultService.SaveEmotionResult(data);
 
-            _logger.LogInformation("Saved emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
-            return Ok("Data received.");
+            _logger.LogInformation("Saved img emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
+            return Ok("Data img received.");
         }
+        [HttpPost("data-text")]
+        public IActionResult ReceiveDataText([FromBody] EmotionResultDTO data)
+        {
+            Console.WriteLine("ReceiveData text actived");
+            if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
+            {
+                return BadRequest("Invalid text data.");
+            }
+
+            _emotionResultService.SaveEmotionResult(data);
+
+            _logger.LogInformation("Saved text emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
+            return Ok("Data text received.");
+        }
+
     }
 }
