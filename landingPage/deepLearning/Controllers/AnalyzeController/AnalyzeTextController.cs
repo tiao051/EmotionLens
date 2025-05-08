@@ -33,7 +33,7 @@ namespace deepLearning.Controllers.AnalyzeFolder
             return Ok(new
             {
                 success = true,
-                message = "Text analysis completed.",
+                message = "We have received your request. Please wait while we process it.",
                 fileId
             });
         }

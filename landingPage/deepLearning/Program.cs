@@ -1,7 +1,8 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.EmotionServices;
-using deepLearning.Services.RabbitMQServices.ExcelService;
+using deepLearning.Services.RabbitMQServices.AudioServices;
+using deepLearning.Services.RabbitMQServices.CSVService;
 using deepLearning.Services.RabbitMQServices.ImgServices;
 using deepLearning.Services.RabbitMQServices.TextServices;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
@@ -36,6 +37,12 @@ builder.Services.AddTransient<ImgManager>();
 //builder.Services.AddHostedService<TextConsumer>();
 builder.Services.AddScoped<ITextQueueProducerService, TextProducer>();
 builder.Services.AddTransient<TextManager>();
+
+//đăng ký rabbitMQ services cho audio
+builder.Services.AddScoped<IAudioQueueProducerService, AudioProducer>();
+builder.Services.AddScoped<IAudioExportService, AudioExport>();
+builder.Services.AddTransient<AudioManager>();
+
 // Add services to the container
 builder.Services.AddControllersWithViews();
 

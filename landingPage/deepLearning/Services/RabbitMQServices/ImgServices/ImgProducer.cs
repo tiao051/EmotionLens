@@ -70,7 +70,7 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
                     basicProperties: properties,
                     body: body);
 
-                _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}, {FileId}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), fileInfo.Id);
+                _logger.LogInformation("Sent img file info to RabbitMQ: {FilePath}, {Timestamp}, {FileId}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), fileInfo.Id);
 
                 return fileInfo.Id;
             }

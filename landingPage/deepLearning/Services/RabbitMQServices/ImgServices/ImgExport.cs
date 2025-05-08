@@ -1,10 +1,4 @@
-﻿using deepLearning.Services.DataPreprocessing;
-using deepLearning.Services.RabbitMQServices.ExcelService;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using Newtonsoft.Json.Linq;
-using System.Text;
-
-namespace deepLearning.Services.RabbitMQServices.ImgServices
+﻿namespace deepLearning.Services.RabbitMQServices.ImgServices
 {
     public interface IImgExportService
     {

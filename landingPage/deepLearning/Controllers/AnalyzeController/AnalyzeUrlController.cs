@@ -1,6 +1,6 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Models.DTO;
-using deepLearning.Services.RabbitMQServices.ExcelService;
+using deepLearning.Services.RabbitMQServices.CSVService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace deepLearning.Controllers.AnalyzeController
@@ -42,19 +42,17 @@ namespace deepLearning.Controllers.AnalyzeController
                 return new JsonResult(new
                 {
                     success = false,
-                    message = "Failed to create Excel file."
+                    message = "Failed to create CSV file."
                 });
             }
 
             await _csvManager.PublishFilePathAsync(filePath);
 
-            Console.WriteLine("File Excel đã được tạo và gửi đi thành công.");
-
             return new JsonResult(new
             {
                 success = true,
-                message = "Excel file created and sent successfully.",
-                filePath = filePath
+                message = "CSV file created and sent successfully.",
+                filePath
             });
         }
     }

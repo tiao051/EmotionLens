@@ -1,5 +1,5 @@
 ﻿using deepLearning.Services.EmotionServices;
-using deepLearning.Services.RabbitMQServices.ImgServices;
+using deepLearning.Services.RabbitMQServices.AudioServices;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -7,54 +7,52 @@ namespace deepLearning.Controllers.AnalyzeController
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AnalyzeImgController : ControllerBase
+    public class AnalyzeAudioController : ControllerBase
     {
-        private readonly ImgManager _imgManager;
-        private readonly ILogger<AnalyzeImgController> _logger;
-        private readonly IEmotionResultService _emotionResultService;
-
-        public AnalyzeImgController(ImgManager imgManager, ILogger<AnalyzeImgController> logger, IEmotionResultService emotionResultService)
+        private readonly AudioManager _audioManager;
+        private readonly ILogger<AnalyzeAudioController> _logger;
+        private readonly IEmotionResultService _emotionAudioResultService;
+        public AnalyzeAudioController(AudioManager audioManager, ILogger<AnalyzeAudioController> logger, IEmotionResultService emotionAudioResultService)
         {
-            _emotionResultService = emotionResultService;
-            _imgManager = imgManager;
+            _emotionAudioResultService = emotionAudioResultService;
+            _audioManager = audioManager;
             _logger = logger;
         }
-
-        [HttpPost("img")]
-        public async Task<IActionResult> AnalyzeImgAsync(IFormFile image)
+        [HttpPost("upload-audio")]
+        public async Task<IActionResult> AnalyzeAudioAsync(IFormFile audioFile)
         {
-            if (image == null || image.Length == 0)
+            if (audioFile == null || audioFile.Length == 0)
             {
-                _logger.LogWarning("No image uploaded.");
-                return BadRequest(new { success = false, message = "No image uploaded." });
+                _logger.LogWarning("No audioFile uploaded.");
+                return BadRequest(new { success = false, message = "No audioFile uploaded." });
             }
 
             try
             {
-                var savedPath = await _imgManager.SaveImgAndGetUrlAsync(image);
+                var savedPath = await _audioManager.SaveAudioAndGetUrlAsync(audioFile);
 
                 if (string.IsNullOrEmpty(savedPath))
                 {
-                    _logger.LogWarning("Failed to create img file.");
+                    _logger.LogWarning("Failed to create audio file.");
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Failed to create img file."
+                        message = "Failed to create audio file."
                     });
                 }
 
-                var fileId = await _imgManager.PublishFilePathAsync(savedPath);
+                var fileId = await _audioManager.PublishFilePathAsync(savedPath);
 
                 if (fileId == null)
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Failed to send file to RabbitMQ."
+                        message = "Failed to send audio file to RabbitMQ."
                     });
                 }
 
-                _logger.LogInformation("Image file has been created and sent successfully.");
+                _logger.LogInformation("Audio file has been created and sent successfully.");
 
                 return Ok(new
                 {
@@ -65,18 +63,18 @@ namespace deepLearning.Controllers.AnalyzeController
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while processing the image.");
+                _logger.LogError(ex, "An error occurred while processing the audio.");
 
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "An unexpected error occurred while processing the image.",
+                    message = "An unexpected error occurred while processing the audio.",
                     error = ex.Message
                 });
             }
         }
-        [HttpGet("get-emotion-result")]
-        public IActionResult GetEmotionResult([FromQuery] string id)
+        [HttpGet("get-audio-emotion-result")]
+        public IActionResult GetAudioEmotionResult([FromQuery] string id)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -87,7 +85,7 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
 
-            var emotionResult = _emotionResultService.GetEmotionResult(id);
+            var emotionResult =  _emotionAudioResultService.GetEmotionResult(id);
 
             _logger.LogInformation("Checking for emotion result with id: {Id}", id);
 
@@ -97,7 +95,7 @@ namespace deepLearning.Controllers.AnalyzeController
                 return NotFound(new
                 {
                     success = false,
-                    message = "Emotion img 123 result not found."
+                    message = "Emotion audio result not found."
                 });
             }
 

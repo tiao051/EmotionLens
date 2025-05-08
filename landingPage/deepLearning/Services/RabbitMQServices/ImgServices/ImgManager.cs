@@ -1,7 +1,4 @@
-﻿using deepLearning.Services.RabbitMQServices.ExcelService;
-using Newtonsoft.Json.Linq;
-
-namespace deepLearning.Services.RabbitMQServices.ImgServices
+﻿namespace deepLearning.Services.RabbitMQServices.ImgServices
 {
     public class ImgManager
     {

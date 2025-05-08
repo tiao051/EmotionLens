@@ -159,7 +159,7 @@ function analyzeSentimentAudio() {
     const formData = new FormData();
     formData.append("audioFile", fileInput.files[0]); 
 
-    fetch("/api/analyzeAudio/upload-audio", { 
+    fetch("/api/analyzeAudio/upload-audio", {  
         method: "POST",
         body: formData,
     })
@@ -168,7 +168,7 @@ function analyzeSentimentAudio() {
             if (data.success) {
                 showToast(data.message, 'success');
                 console.log(data.fileId);
-                fetchAudioEmotionResultPolling(data.fileId);  
+                fetchAudioEmotionResultPolling(data.fileId);
             } else {
                 showToast(data.message, 'error');
             }
@@ -182,8 +182,17 @@ function fetchAudioEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000
 
     const poll = () => {
         fetch(`/api/analyzeAudio/get-audio-emotion-result?id=${fileId}`)
-            .then(response => response.json())
-            .then(data => {
+            .then(async response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const text = await response.text();
+                if (!text) {
+                    throw new Error("Empty response from server.");
+                }
+
+                const data = JSON.parse(text);
                 console.log("Polling response:", data);
 
                 if (data && data.success && data.data && data.data.emotion) {
@@ -203,7 +212,7 @@ function fetchAudioEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000
             })
             .catch(error => {
                 console.error("❌ Error fetching emotion result:", error);
-                showToast("Error while checking emotion result.");
+                showToast("Error while checking emotion result.", 'error');
             });
     };
 
@@ -277,7 +286,7 @@ function showToast(message, type = 'error') {
         toast.style.backgroundColor = '#f44336'; 
     }
 
-    toast.innerHTML = `${message} <span class="close-btn" onclick="closeToast(this)">X</span>`;
+    toast.innerHTML = `${message}`;
 
     toastContainer.appendChild(toast);
 
@@ -287,8 +296,3 @@ function showToast(message, type = 'error') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
-//function closeToast(toastElement) {
-//    const toast = toastElement.parentElement;
-//    toast.classList.remove('show');
-//    setTimeout(() => toast.remove(), 300);
-//}

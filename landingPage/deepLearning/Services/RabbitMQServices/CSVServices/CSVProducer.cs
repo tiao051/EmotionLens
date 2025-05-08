@@ -3,7 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace deepLearning.Services.RabbitMQServices.ExcelService
+namespace deepLearning.Services.RabbitMQServices.CSVService
 {
     public interface ICSVQueueProducerService
     {
@@ -14,13 +14,13 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
     {   
         private readonly IConfiguration _configuration;
         private readonly ILogger<CSVProducer> _logger;
-        private readonly string _excelQueueName;
+        private readonly string _csvQueueName;
 
         public CSVProducer(IConfiguration configuration, ILogger<CSVProducer> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            _excelQueueName = _configuration["RabbitMQ:ExcelQueue"];
+            _csvQueueName = _configuration["RabbitMQ:CSVQueue"];
         }
         public async Task SendCSVFileToRabbitMQ(string filePath)
         {
@@ -44,7 +44,7 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
                 await using var channel = await connection.CreateChannelAsync();
 
                 await channel.QueueDeclareAsync(
-                   queue: _excelQueueName,
+                   queue: _csvQueueName,
                    durable: true,
                    exclusive: false,
                    autoDelete: false,
@@ -52,7 +52,7 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
 
                 var fileInfo = new
                 {
-                    Id = Guid.NewGuid(),
+                    Id = GenerateFullTimestampId(),
                     FilePath = filePath,
                     Timestamp = DateTime.UtcNow
                 };
@@ -64,7 +64,7 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
 
                 await channel.BasicPublishAsync(
                    exchange: "",
-                   routingKey: _excelQueueName,
+                   routingKey: _csvQueueName,
                    mandatory: false,
                    basicProperties: properties,
                    body: body);
@@ -77,6 +77,12 @@ namespace deepLearning.Services.RabbitMQServices.ExcelService
             {
                 _logger.LogError($"Error while sending file info to queue: {ex.Message}");
             }
+        }
+        public string GenerateFullTimestampId()
+        {
+            var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");
+            var random = Guid.NewGuid().ToString("N")[..3];
+            return $"CSV_{timestamp}_{random}";
         }
     }
 }

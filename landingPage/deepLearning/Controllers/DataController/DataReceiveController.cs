@@ -46,6 +46,19 @@ namespace deepLearning.Controllers.DataController
             _logger.LogInformation("Saved text emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
             return Ok("Data text received.");
         }
+        [HttpPost("data-audio")]
+        public IActionResult ReceiveDataAudio([FromBody] EmotionResultDTO data)
+        {
+            Console.WriteLine("ReceiveData audio actived");
+            if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
+            {
+                return BadRequest("Invalid text audio.");
+            }
 
+            _emotionResultService.SaveEmotionResult(data);
+
+            _logger.LogInformation("Saved audio emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
+            return Ok("Data audio received.");
+        }
     }
 }

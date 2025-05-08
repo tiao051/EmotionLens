@@ -29,8 +29,8 @@ def run_audio_rabbitmq_consumer():
     start_audio_rabbitmq_consumer()
 # Hàm huấn luyện mô hình
 def train_img_emotion_model():
-    train_dir = 'D:/Deep_Learning/dataSet/fer2013/train'
-    test_dir = 'D:/Deep_Learning/dataSet/fer2013/test'
+    train_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/train'
+    test_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/test'
 
     train_gen, test_gen = create_data_generators(train_dir, test_dir)
     emotion_model = build_emotion_model()
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # asyncio.run(get_comments())  # Nếu cần crawling comment
 
-    image_path = "D:/Deep_Learning/dataSet/imgTest/img.jpg"
+    # image_path = "D:/Deep_Learning/dataSet/testData/imgTest/img.jpg"
     # model_path = "D:/Deep_Learning/main/pythonAPI/model/crema_d_audio_emotion_bilstm_attention.h5"
     # analyze_emotion_from_image(image_path)
     # train_img_emotion_model()
