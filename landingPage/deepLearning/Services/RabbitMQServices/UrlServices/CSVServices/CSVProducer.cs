@@ -3,7 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace deepLearning.Services.RabbitMQServices.CSVService
+namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
 {
     public interface ICSVQueueProducerService
     {
@@ -11,7 +11,7 @@ namespace deepLearning.Services.RabbitMQServices.CSVService
     }
 
     public class CSVProducer : ICSVQueueProducerService
-    {   
+    {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CSVProducer> _logger;
         private readonly string _csvQueueName;
@@ -70,8 +70,6 @@ namespace deepLearning.Services.RabbitMQServices.CSVService
                    body: body);
 
                 _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm MM/dd/yyyy"));
-
-
             }
             catch (Exception ex)
             {

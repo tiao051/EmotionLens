@@ -2,10 +2,11 @@
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.EmotionServices;
 using deepLearning.Services.RabbitMQServices.AudioServices;
-using deepLearning.Services.RabbitMQServices.CSVService;
 using deepLearning.Services.RabbitMQServices.ImgServices;
 using deepLearning.Services.RabbitMQServices.TextServices;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
+using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
+using deepLearning.Services.RabbitMQServices.UrlServices.TikTokServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,10 @@ builder.Services.AddTransient<TextManager>();
 builder.Services.AddScoped<IAudioQueueProducerService, AudioProducer>();
 builder.Services.AddScoped<IAudioExportService, AudioExport>();
 builder.Services.AddTransient<AudioManager>();
+
+//đăng ký rabbitMQ services cho tiktok 
+builder.Services.AddScoped<ITiktokQueueProducerService, TiktokProducer>();
+builder.Services.AddTransient<TiktokManager>();
 
 // Add services to the container
 builder.Services.AddControllersWithViews();

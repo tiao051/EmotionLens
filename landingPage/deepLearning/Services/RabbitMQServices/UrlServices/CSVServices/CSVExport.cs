@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text;
 
-namespace deepLearning.Services.RabbitMQServices.CSVService
+namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
 {
     public interface ICSVExportService
     {
@@ -20,7 +20,7 @@ namespace deepLearning.Services.RabbitMQServices.CSVService
         public CSVExport(IConfiguration configuration, ILogger<CSVExport> logger, ProcessingData processingData)
         {
             _saveDirectory = configuration.GetValue<string>("CSVFileSettings:CSVFileSaveDirectory");
-            _processingData = processingData;  
+            _processingData = processingData;
             _logger = logger;
         }
 

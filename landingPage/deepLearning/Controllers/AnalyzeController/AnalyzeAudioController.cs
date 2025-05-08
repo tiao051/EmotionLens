@@ -41,7 +41,7 @@ namespace deepLearning.Controllers.AnalyzeController
                     });
                 }
 
-                var fileId = await _audioManager.PublishFilePathAsync(savedPath);
+                var fileId = await _audioManager.PublishAudioPathAsync(savedPath);
 
                 if (fileId == null)
                 {

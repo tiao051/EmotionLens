@@ -18,7 +18,7 @@ namespace deepLearning.Services.RabbitMQServices.AudioServices
             return await _audioExportService.SaveAudioAndGetUrl(audioFile);
         }
 
-        public async Task<string> PublishFilePathAsync(string filePath)
+        public async Task<string> PublishAudioPathAsync(string filePath)
         {
             var fileId = await _audioQueueProducerService.SendAudioFileToRabbitMQ(filePath);
 

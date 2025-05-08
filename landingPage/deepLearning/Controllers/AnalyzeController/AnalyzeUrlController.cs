@@ -1,6 +1,7 @@
 ﻿using deepLearning.Controllers.YoutubeController;
 using deepLearning.Models.DTO;
-using deepLearning.Services.RabbitMQServices.CSVService;
+using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
+using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace deepLearning.Controllers.AnalyzeController
@@ -11,13 +12,15 @@ namespace deepLearning.Controllers.AnalyzeController
     {
         private readonly YoutubeCrawlData _youtubeCrawData;
         private readonly CSVManager _csvManager;
-        public AnalyzeUrlController(YoutubeCrawlData youtubeCrawData, CSVManager csvManager)
+        private readonly TiktokManager _tiktokManager;
+        public AnalyzeUrlController(YoutubeCrawlData youtubeCrawData, CSVManager csvManager, TiktokManager tiktokManager)
         {
             _youtubeCrawData = youtubeCrawData;
             _csvManager = csvManager;
+            _tiktokManager = tiktokManager;
         }
-        [HttpPost("url")]
-        public async Task<JsonResult> AnalyzeUrl([FromBody] UrlRequestDTO request)
+        [HttpPost("youtube")]
+        public async Task<JsonResult> AnalyzeYoutubeUrl([FromBody] UrlRequestDTO request)
         {   
             string url = request.Url;
             var videoData = await _youtubeCrawData.GetVideoInfoAsync(url);
@@ -53,6 +56,18 @@ namespace deepLearning.Controllers.AnalyzeController
                 success = true,
                 message = "CSV file created and sent successfully.",
                 filePath
+            });
+        }
+        [HttpPost("tiktok")]
+        public async Task<JsonResult> AnalyzeTiktokUrl([FromBody] UrlRequestDTO request)
+        {
+            await _tiktokManager.PublishTiktokMessageAsync(request.Url);
+
+            return new JsonResult(new
+            {
+                success = true,
+                message = "Tiktok file created and sent successfully.",
+                request.Url
             });
         }
     }

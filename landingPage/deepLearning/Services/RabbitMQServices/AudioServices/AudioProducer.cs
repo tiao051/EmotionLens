@@ -8,7 +8,6 @@ namespace deepLearning.Services.RabbitMQServices.AudioServices
     public interface IAudioQueueProducerService
     {
         Task<string> SendAudioFileToRabbitMQ(string filePath);
-        string GenerateFullTimestampId();
     }
     public class AudioProducer : IAudioQueueProducerService
     {

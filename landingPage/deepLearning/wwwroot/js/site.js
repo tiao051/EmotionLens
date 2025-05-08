@@ -238,26 +238,35 @@ function analyzeSentimentUrl() {
         return;
     }
 
-    if (!isSupportedUrl(url)) {
-        showToast("❌ Only YouTube or Tiktok URLs are supported.");
-        return;
+    if (isYouTubeUrl(url)) {
+        analyzeSentiment("/api/analyzeUrl/youtube", { url });
+    } else if (isTikTokUrl(url)) {
+        analyzeSentiment("/api/analyzeUrl/tiktok", { url });
+    } else {
+        showToast("❌ Only YouTube or TikTok URLs are supported.");
     }
-
-    analyzeSentiment("/api/analyzeUrl/url", { url });
 }
 function isValidUrl(url) {
-    const regex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
-    return regex.test(url);
+    const pattern = /^(https?):\/\/[^\s$.?#].[^\s]*$/i;
+    return pattern.test(url);
 }
-function isSupportedUrl(url) {
+
+
+function isYouTubeUrl(url) {
     try {
         const parsedUrl = new URL(url);
-        const hostname = parsedUrl.hostname.toLowerCase();
+        const host = parsedUrl.hostname.toLowerCase();
+        return host.includes("youtube.com") || host.includes("youtu.be");
+    } catch (e) {
+        return false;
+    }
+}
 
-        return hostname.includes("youtube.com") ||
-            hostname.includes("youtu.be") ||
-            hostname.includes("tiktok.com");
-    } catch (error) {
+function isTikTokUrl(url) {
+    try {
+        const parsedUrl = new URL(url);
+        return parsedUrl.hostname.toLowerCase().includes("tiktok.com");
+    } catch (e) {
         return false;
     }
 }

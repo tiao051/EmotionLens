@@ -1,35 +1,37 @@
-﻿using deepLearning.Services.RabbitMQServices.ImgServices;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
 
-namespace deepLearning.Services.RabbitMQServices.TextServices
+namespace deepLearning.Services.RabbitMQServices.UrlServices.TikTokServices
 {
-    public interface ITextQueueProducerService
+    public interface ITiktokQueueProducerService
     {
-        Task<string> SendTextFileToRabbitMQ(string messageText);
+        Task<string> SendTiktokUrlToRabbitMQ(string url);
     }
-    public class TextProducer : ITextQueueProducerService
+
+    public class TiktokProducer : ITiktokQueueProducerService
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<TextProducer> _logger;
-        private readonly string _textQueue;
-        public TextProducer(IConfiguration configuration, ILogger<TextProducer> logger)
+        private readonly ILogger<TiktokProducer> _logger;
+        private readonly string _tiktokQueueName;
+
+        public TiktokProducer(IConfiguration configuration, ILogger<TiktokProducer> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            _textQueue = _configuration["RabbitMQ:TextQueue"];
+            _tiktokQueueName = _configuration["RabbitMQ:TiktokQueue"];
         }
-        public async Task<string> SendTextFileToRabbitMQ(string messageText)
+
+        public async Task<string> SendTiktokUrlToRabbitMQ(string url)
         {
+            if (string.IsNullOrEmpty(url))
+            {
+                _logger.LogError("URL is null or empty.");
+                return null;
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(messageText))
-                {
-                    _logger.LogError("text is null or empty.");
-                    return null;
-                }
-
                 var factory = new ConnectionFactory
                 {
                     HostName = _configuration["RabbitMQ:HostName"],
@@ -42,46 +44,47 @@ namespace deepLearning.Services.RabbitMQServices.TextServices
                 await using var channel = await connection.CreateChannelAsync();
 
                 await channel.QueueDeclareAsync(
-                    queue: _textQueue,
+                    queue: _tiktokQueueName,
                     durable: true,
                     exclusive: false,
                     autoDelete: false,
                     arguments: null);
 
-                var textInfo = new
+                var urlInfo = new
                 {
-                    Id = GenerateTextMessageId(),
-                    Text = messageText,
+                    Id = GenerateFullTimestampId(),
+                    Url = url,
                     Timestamp = DateTime.UtcNow
                 };
 
-                var jsonPayload = JsonConvert.SerializeObject(textInfo);
-                var body = Encoding.UTF8.GetBytes(jsonPayload);
+                var message = JsonConvert.SerializeObject(urlInfo);
+                var body = Encoding.UTF8.GetBytes(message);
 
                 var properties = new BasicProperties { Persistent = true };
 
                 await channel.BasicPublishAsync(
                     exchange: "",
-                    routingKey: _textQueue,
+                    routingKey: _tiktokQueueName,
                     mandatory: false,
                     basicProperties: properties,
                     body: body);
 
-                _logger.LogInformation("Published text message to RabbitMQ: {Id}", textInfo.Id);
-                return textInfo.Id;
+                _logger.LogInformation("Sent TikTok URL to RabbitMQ: {Url}, {Timestamp}, {FileId}", urlInfo.Url, DateTime.UtcNow.AddHours(7).ToString("HH:mm dd/MM/yyyy"), urlInfo.Id);
+
+                return urlInfo.Id;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while sending text file info to RabbitMQ.");
+                _logger.LogError($"Error while sending TikTok URL to queue: {ex.Message}");
                 return null;
             }
         }
 
-        public string GenerateTextMessageId()
+        public string GenerateFullTimestampId()
         {
             var timestamp = DateTime.Now.ToString("HHmm_ddMMyyyy");
             var random = Guid.NewGuid().ToString("N")[..3];
-            return $"TEXT_{timestamp}_{random}";
+            return $"TIKTOK_{timestamp}_{random}";
         }
     }
 }

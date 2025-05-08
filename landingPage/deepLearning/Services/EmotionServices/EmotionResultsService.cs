@@ -31,6 +31,5 @@ namespace deepLearning.Services.EmotionServices
             Console.WriteLine("Result not found.");
             return null;
         }
-
     }
 }

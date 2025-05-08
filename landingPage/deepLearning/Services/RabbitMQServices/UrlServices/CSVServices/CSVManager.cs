@@ -1,7 +1,6 @@
-﻿using deepLearning.Models.DTO;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 
-namespace deepLearning.Services.RabbitMQServices.CSVService
+namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
 {
     public class CSVManager
     {

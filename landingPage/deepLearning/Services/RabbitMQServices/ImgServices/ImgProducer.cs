@@ -7,7 +7,6 @@ namespace deepLearning.Services.RabbitMQServices.ImgServices
     public interface IImgQueueProducerService
     {
         Task<string> SendImgFileToRabbitMQ(string filePath);
-        string GenerateFullTimestampId();
     }
 
     public class ImgProducer : IImgQueueProducerService

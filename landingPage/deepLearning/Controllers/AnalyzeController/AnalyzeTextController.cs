@@ -22,7 +22,6 @@ namespace deepLearning.Controllers.AnalyzeFolder
         [HttpPost("comment")]
         public async Task<IActionResult> AnalyzeTextAsync([FromBody] TextRequest request)
         {
-            Console.WriteLine("12312312312");
             if (request == null || string.IsNullOrWhiteSpace(request.Text))
             {
                 return BadRequest(new { success = false, message = "Input text cannot be empty." });
