@@ -181,3 +181,59 @@ def start_txt_rabbitmq_consumer():
         channel.stop_consuming()
     finally:
         connection.close()
+
+def start_audio_rabbitmq_consumer():
+    print("🚀 Starting RabbitMQ consumer for audio_queue...")
+    connection = get_rabbitmq_connection()
+    if connection is None:
+        print("❌ Failed to connect to RabbitMQ Audio.")
+        return
+
+    channel = connection.channel()
+    channel.queue_declare(queue='audio_queue', durable=True)
+    channel.basic_consume(queue='audio_queue', on_message_callback=call_back_audio, auto_ack=False)
+
+    print("⏳ Waiting for messages in audio_queue. Press CTRL+C to exit.")
+    try:
+        channel.start_consuming()
+    except KeyboardInterrupt:
+        print("🛑 Stopping audio_queue consumer...")
+        channel.stop_consuming()
+    finally:
+        connection.close()
+        
+def call_back_audio(ch, method, properties, body):
+    message = json.loads(body)
+    file_id = message.get("Id")
+    text_content = message.get("AudioContent")
+
+    print(f"Received ID: {file_id}")
+    print(f"Received audio content: {text_content}")
+
+    try:
+        emotion_result = "Happy"  # Hardcoded result for testing
+
+        print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
+
+        result_message = {
+            "Id": file_id,
+            "Emotion": emotion_result
+        }
+        print(f"Data sent to C#: {result_message}")
+
+        url = "https://localhost:44354/api/DataReceive/data-audio" 
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            response = requests.post(url, json=result_message, headers=headers, verify=False)
+            print(f"Response from C#: {response.status_code}, {response.text}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending data to C#: {e}")
+
+    except Exception as e:
+        print(f"Error processing text with ID {file_id}: {e}")
+
+    # Acknowledge the message
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+    print(f"Audio with ID: {file_id} processed and acknowledged.")
+        

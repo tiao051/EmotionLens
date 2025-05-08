@@ -27,15 +27,6 @@
         showToast("An error occurred during analysis.");
     }
 }
-
-function validateInput(inputData, toastMessage) {
-    if (!inputData || !inputData.trim()) {
-        showToast(toastMessage);
-        return false;
-    }
-    return true;
-}
-
 function analyzeSentimentComment() {
     const inputText = document.getElementById("input-text").value;
     console.log("Text input: ", inputText); 
@@ -97,44 +88,6 @@ function fetchTextEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000)
 
     poll();
 }
-function analyzeSentimentUrl() {
-    const url = document.getElementById("input-url").value.trim();
-
-    if (!url) {
-        showToast("❌ URL is required.");
-        return;
-    }
-
-    if (!isValidUrl(url)) {
-        showToast("❌ Invalid URL format.");
-        return;
-    }
-
-    if (!isSupportedUrl(url)) {
-        showToast("❌ Only YouTube or Tiktok URLs are supported.");
-        return;
-    }
-
-    analyzeSentiment("/api/analyzeUrl/url", { url });
-}
-
-function isValidUrl(url) {
-    const regex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
-    return regex.test(url);
-}
-
-function isSupportedUrl(url) {
-    try {
-        const parsedUrl = new URL(url);
-        const hostname = parsedUrl.hostname.toLowerCase();
-
-        return hostname.includes("youtube.com") ||
-            hostname.includes("youtu.be") ||
-            hostname.includes("tiktok.com");
-    } catch (error) {
-        return false; 
-    }
-}
 function analyzeSentimentImg() {
     const fileInput = document.getElementById("file-input-image");
     if (!fileInput.files || fileInput.files.length === 0) {
@@ -164,7 +117,6 @@ function analyzeSentimentImg() {
             showToast("Error: " + error.message);
         });
 }
-
 function fetchEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
     let attempts = 0;
 
@@ -197,17 +149,108 @@ function fetchEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
 
     poll();
 }
-
 function analyzeSentimentAudio() {
     const fileInput = document.getElementById("audio-input");
     if (!fileInput.files || fileInput.files.length === 0) {
-        showToast("Please upload an audio file for analysis.");
+        showToast("Please upload an audio file for analysis.", 'error');
         return;
     }
 
-    const audioData = { audio: "Base64 audio data or file path here" };
+    const formData = new FormData();
+    formData.append("audioFile", fileInput.files[0]); 
 
-    analyzeSentiment("/api/analyzeAudio/audio", audioData);
+    fetch("/api/analyzeAudio/upload-audio", { 
+        method: "POST",
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                console.log(data.fileId);
+                fetchAudioEmotionResultPolling(data.fileId);  
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showToast("Error: " + error.message, 'error');
+        });
+}
+function fetchAudioEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000) {
+    let attempts = 0;
+
+    const poll = () => {
+        fetch(`/api/analyzeAudio/get-audio-emotion-result?id=${fileId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Polling response:", data);
+
+                if (data && data.success && data.data && data.data.emotion) {
+                    const emotion = data.data.emotion || "No emotion detected";
+                    console.log("✅ Detected Emotion:", emotion);
+                    showToast(`Detected Emotion: ${emotion}`, 'success');
+                } else {
+                    if (attempts < maxAttempts) {
+                        attempts++;
+                        console.log(`⏳ Attempt ${attempts}: result not ready, retrying in ${delayMs}ms...`);
+                        setTimeout(poll, delayMs);
+                    } else {
+                        console.log("❌ Emotion result not available after multiple attempts.");
+                        showToast("Emotion result not available yet. Try again later.", 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("❌ Error fetching emotion result:", error);
+                showToast("Error while checking emotion result.");
+            });
+    };
+
+    poll();
+}
+function validateInput(inputData, toastMessage) {
+    if (!inputData || !inputData.trim()) {
+        showToast(toastMessage);
+        return false;
+    }
+    return true;
+}
+function analyzeSentimentUrl() {
+    const url = document.getElementById("input-url").value.trim();
+
+    if (!url) {
+        showToast("❌ URL is required.");
+        return;
+    }
+
+    if (!isValidUrl(url)) {
+        showToast("❌ Invalid URL format.");
+        return;
+    }
+
+    if (!isSupportedUrl(url)) {
+        showToast("❌ Only YouTube or Tiktok URLs are supported.");
+        return;
+    }
+
+    analyzeSentiment("/api/analyzeUrl/url", { url });
+}
+function isValidUrl(url) {
+    const regex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+    return regex.test(url);
+}
+function isSupportedUrl(url) {
+    try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname.toLowerCase();
+
+        return hostname.includes("youtube.com") ||
+            hostname.includes("youtu.be") ||
+            hostname.includes("tiktok.com");
+    } catch (error) {
+        return false;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -221,7 +264,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (analyzeImgBtn) analyzeImgBtn.addEventListener("click", analyzeSentimentImg);
     if (analyzeAudioBtn) analyzeAudioBtn.addEventListener("click", analyzeSentimentAudio);
 });
-
 function showToast(message, type = 'error') {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -245,9 +287,8 @@ function showToast(message, type = 'error') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
-
-function closeToast(toastElement) {
-    const toast = toastElement.parentElement;
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
-}
+//function closeToast(toastElement) {
+//    const toast = toastElement.parentElement;
+//    toast.classList.remove('show');
+//    setTimeout(() => toast.remove(), 300);
+//}

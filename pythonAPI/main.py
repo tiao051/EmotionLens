@@ -5,6 +5,7 @@ from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, anal
 from rabbitMQ.consumer import start_url_rabbitmq_consumer
 from rabbitMQ.consumer import start_img_queue_consumer
 from rabbitMQ.consumer import start_txt_rabbitmq_consumer
+from rabbitMQ.consumer import start_audio_rabbitmq_consumer
 from emotion_model.img_model.train import train_model
 from emotion_model.img_model.train import create_data_generators
 from emotion_model.img_model.predict import predict_emotion
@@ -23,6 +24,9 @@ def run_rabbitmq_img_consumer():
     
 def run_txt_rabbitmq_consumer():
     start_txt_rabbitmq_consumer()
+    
+def run_audio_rabbitmq_consumer():
+    start_audio_rabbitmq_consumer()
 # Hàm huấn luyện mô hình
 def train_img_emotion_model():
     train_dir = 'D:/Deep_Learning/dataSet/fer2013/train'
@@ -45,6 +49,9 @@ if __name__ == "__main__":
     
     txt_consumer_thread = threading.Thread(target=run_txt_rabbitmq_consumer)
     txt_consumer_thread.start()
+    
+    audio_consumer_thread = threading.Thread(target=run_audio_rabbitmq_consumer)
+    audio_consumer_thread.start()
 
     # asyncio.run(get_comments())  # Nếu cần crawling comment
 
