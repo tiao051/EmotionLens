@@ -27,6 +27,7 @@ def run_txt_rabbitmq_consumer():
     
 def run_audio_rabbitmq_consumer():
     start_audio_rabbitmq_consumer()
+    
 # Hàm huấn luyện mô hình
 def train_img_emotion_model():
     train_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/train'

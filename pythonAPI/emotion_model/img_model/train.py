@@ -1,7 +1,6 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+import matplotlib.pyplot as plt
 
 def create_data_generators(train_dir, test_dir):
     train_datagen = ImageDataGenerator(
@@ -34,21 +33,40 @@ def create_data_generators(train_dir, test_dir):
 
     return train_generator, test_generator
 
-def train_model(model, train_generator, test_generator, epochs=10, model_path='emotion_model.h5'):
+def train_model(model, train_generator, test_generator, epochs=50, model_path='emotion_model.h5'):
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=1e-6),
+        ModelCheckpoint(model_path, monitor='val_loss', save_best_only=True)
+    ]
+
     history = model.fit(
         train_generator,
         epochs=epochs,
-        validation_data=test_generator
+        validation_data=test_generator,
+        callbacks=callbacks
     )
-    model.save(model_path)
+
     plot_training_history(history)
 
 def plot_training_history(history):
-    import matplotlib.pyplot as plt
-    plt.plot(history.history['accuracy'], label='train_accuracy')
-    plt.plot(history.history['val_accuracy'], label='val_accuracy')
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Train Acc')
+    plt.plot(history.history['val_accuracy'], label='Val Acc')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
     plt.legend()
-    plt.title('Training & Validation Accuracy')
+    plt.title('Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Train Loss')
+    plt.plot(history.history['val_loss'], label='Val Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.title('Loss')
+
+    plt.tight_layout()
     plt.show()
