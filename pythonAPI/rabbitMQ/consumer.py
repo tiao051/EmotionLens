@@ -3,6 +3,7 @@ import pika
 import threading
 import aiohttp
 import time
+import os
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from emotion_model.deepfaceAPI.deepfacemodel import load_or_download_model, analyze_image_emotion
@@ -84,7 +85,7 @@ async def callback_img(ch, method, properties, body):
 async def callback_txt(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
-    text_content = message.get("TextContent")
+    text_content = message.get("Text")
 
     print(f"Received ID: {file_id}")
     print(f"Received text content: {text_content}")
@@ -112,10 +113,10 @@ async def callback_txt(ch, method, properties, body):
 async def callback_audio(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")
-    text_content = message.get("AudioContent")
+    file_path = message.get("FilePath")
 
     print(f"Received ID: {file_id}")
-    print(f"Received audio content: {text_content}")
+    print(f"Received audio content: {file_path}")
 
     try:
         emotion_result = "Happy"  
@@ -154,7 +155,7 @@ async def callback_tiktok(ch, method, properties, body):
         print(f"Extracted video ID: {video_id}")
         
         ms_token = TIKTOK_API_CONFIG["ms_token"]
-        output_path = f"comments_{video_id}.csv"  
+        output_path = os.path.join(TIKTOK_API_CONFIG["save_csv_path"], f"comments_{video_id}.csv")
         
         try:
             await get_comments(video_id, ms_token, output_path)

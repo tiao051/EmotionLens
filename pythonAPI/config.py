@@ -13,7 +13,8 @@ API_ENDPOINTS = {
 }
 
 TIKTOK_API_CONFIG = {
-    "ms_token": "YQ2EpPvl2TsWkd7ffB0VVjqE9gCbvk8B0zWCfUX33-dDrlrpDihPVKV0v3QmyRpu8FgqCiXMFTdmC6QD8LPBGft-vsVuSNAby1WaZWzV8WctBNWAgT5K0FX59MvtY5834d037i61Yi-Qetkn9ij8CBw="
+    "ms_token": "La7TPOQLrbuzdv477hvZ2Xsw5HrZMGHh3C_0IDhx4VlbiaSvEWI3BUWS2Sg0_MbnIMXEdrB9w-r0_LSajVIrVXzcbRxclbjyoMmS7FQ-y4QcwBF4MdaRqU6xMHO-wUPD4kKeNcQzYOOpoqRatMyf6EY=",
+    "save_csv_path": "D:\\Deep_Learning\\dataSet\\exportData\\tiktokExport"
 }
 
 MODEL_NAME = "VGG-Face"
