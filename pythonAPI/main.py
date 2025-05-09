@@ -1,7 +1,7 @@
 import threading
 import asyncio
-from keras.models import load_model # type: ignore
-from emotion_model.text_model.predict import load_model, predict_sentiment
+from tensorflow.keras.models import load_model as keras_load_model
+from emotion_model.text_model.predict import load_model as text_load_model, predict_sentiment
 from rabbitMQ.consumer import (
     start_consumer,
     callback_txt,
@@ -12,19 +12,19 @@ from rabbitMQ.consumer import (
 )
 
 AUDIO_MODEL_PATH = r"D:\Deep_Learning\main\pythonAPI\emotion_model\audio_model\audio_model.h5"
-audio_model = load_model(AUDIO_MODEL_PATH)
+audio_model = keras_load_model(AUDIO_MODEL_PATH)
 
 def test_predict_text(text="happy", model_directory="./sentiment_distilbert_full_data"):
-    model, tokenizer = load_model(model_directory)
+    model, tokenizer = text_load_model(model_directory)
     label, idx = predict_sentiment(text, model, tokenizer)
     print(f"Input: {text}\nPredicted: {label} (Index: {idx})")
     return label, idx
 
 # Optional: mô hình huấn luyện hình ảnh
 def train_img_emotion_model():
-    from emotion_model.model_training import create_data_generators, build_emotion_model, train_model # type: ignore
-    from keras.models import load_model # type: ignore
-    from emotion_model.inference import predict_emotion # type: ignore
+    from emotion_model.img_model import create_data_generators, build_emotion_model, train_model 
+    from keras.models import load_model 
+    from emotion_model.img_model.predict import predict_emotion
 
     train_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/train'
     test_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/test'
