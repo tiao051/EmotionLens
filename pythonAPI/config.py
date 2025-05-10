@@ -21,4 +21,4 @@ TIKTOK_API_CONFIG = {
     "save_csv_path": "D:\\Deep_Learning\\dataSet\\exportData\\tiktokExport"
 }
 
-MODEL_NAME = "VGG-Face"
+# MODEL_NAME = "VGG-Face"

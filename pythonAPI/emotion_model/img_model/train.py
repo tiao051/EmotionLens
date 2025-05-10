@@ -1,8 +1,11 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 import matplotlib.pyplot as plt
+import os
+from datetime import datetime
 
-def create_data_generators(train_dir, test_dir):
+def create_data_generators(train_dir, test_dir, batch_size=64):
+    # Augmentation for the training data
     train_datagen = ImageDataGenerator(
         rescale=1./255,
         rotation_range=20,
@@ -13,27 +16,35 @@ def create_data_generators(train_dir, test_dir):
         horizontal_flip=True,
         fill_mode='nearest'
     )
+    # Only rescaling for the test data (no augmentation)
     test_datagen = ImageDataGenerator(rescale=1./255)
 
     train_generator = train_datagen.flow_from_directory(
         train_dir,
         target_size=(48, 48),
         color_mode='grayscale',
-        batch_size=64,
-        class_mode='categorical'
+        batch_size=batch_size,
+        class_mode='categorical',
+        shuffle=True  # Shuffling the training data
     )
 
     test_generator = test_datagen.flow_from_directory(
         test_dir,
         target_size=(48, 48),
         color_mode='grayscale',
-        batch_size=64,
-        class_mode='categorical'
+        batch_size=batch_size,
+        class_mode='categorical',
+        shuffle=False  # No shuffling on test data
     )
 
     return train_generator, test_generator
 
-def train_model(model, train_generator, test_generator, epochs=50, model_path='emotion_model.h5'):
+def train_model(model, train_generator, test_generator, epochs=50, model_dir='models'):
+    os.makedirs(model_dir, exist_ok=True)  # Ensure the directory exists
+    
+    # Timestamp for unique model naming
+    model_path = os.path.join(model_dir, f"emotion_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.h5")
+
     callbacks = [
         EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
         ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=1e-6),
