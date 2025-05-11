@@ -1,8 +1,9 @@
-﻿using deepLearning.Controllers.YoutubeController;
-using deepLearning.Models.DTO;
+﻿using deepLearning.Models.DTO;
 using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
+using deepLearning.Services.YoutubeServices;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace deepLearning.Controllers.AnalyzeController
 {
@@ -10,20 +11,28 @@ namespace deepLearning.Controllers.AnalyzeController
     [ApiController]
     public class AnalyzeUrlController : ControllerBase
     {
-        private readonly YoutubeCrawlData _youtubeCrawData;
         private readonly CSVManager _csvManager;
+        private readonly YoutubeCrawlDataServices _youtubeCrawlDataServices;
         private readonly TiktokManager _tiktokManager;
-        public AnalyzeUrlController(YoutubeCrawlData youtubeCrawData, CSVManager csvManager, TiktokManager tiktokManager)
+        public AnalyzeUrlController(CSVManager csvManager, TiktokManager tiktokManager, YoutubeCrawlDataServices youtubeCrawlDataServices)
         {
-            _youtubeCrawData = youtubeCrawData;
             _csvManager = csvManager;
             _tiktokManager = tiktokManager;
+            _youtubeCrawlDataServices = youtubeCrawlDataServices;
         }
         [HttpPost("youtube")]
         public async Task<JsonResult> AnalyzeYoutubeUrl([FromBody] UrlRequestDTO request)
-        {   
-            string url = request.Url;
-            var videoData = await _youtubeCrawData.GetVideoInfoAsync(url);
+        {
+            if (string.IsNullOrWhiteSpace(request?.Url))
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "URL is required."
+                });
+            }
+
+            var videoData = await _youtubeCrawlDataServices.GetVideoDataAsync(request.Url);
 
             if (videoData == null)
             {
@@ -34,11 +43,10 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
 
-            var videoObj = videoData.VideoInfo;
-            var allComments = videoData.Comments;
-            var videoId = videoData.VideoId;
+            string videoId = videoData.VideoId;
+            var comments = videoData.Comments;
 
-            var filePath = await _csvManager.CreateCSVFileAsync(videoObj, allComments, videoId);
+            var filePath = await _csvManager.CreateCSVFileAsync(videoData.VideoInfo as JObject, comments, videoId);
 
             if (string.IsNullOrEmpty(filePath))
             {
@@ -55,9 +63,11 @@ namespace deepLearning.Controllers.AnalyzeController
             {
                 success = true,
                 message = "CSV file created and sent successfully.",
-                filePath
+                filePath,
+                entity = videoData.EntityInfo // Optional: include entity info in response
             });
         }
+
         [HttpPost("tiktok")]
         public async Task<JsonResult> AnalyzeTiktokUrl([FromBody] UrlRequestDTO request)
         {

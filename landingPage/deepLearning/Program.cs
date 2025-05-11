@@ -1,5 +1,4 @@
 ﻿using deepLearning.Configurations;
-using deepLearning.Controllers.YoutubeController;
 using deepLearning.Services.DataPreprocessing;
 using deepLearning.Services.EmotionServices;
 using deepLearning.Services.RabbitMQServices.AudioServices;
@@ -8,6 +7,7 @@ using deepLearning.Services.RabbitMQServices.TextServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TikTokServices;
+using deepLearning.Services.YoutubeServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +19,10 @@ builder.Logging.AddFilter("System", LogLevel.Warning);
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 // Đăng ký DI
-builder.Services.Configure<SecretKeyConfig>(builder.Configuration.GetSection("SecretKeySettings"));
+builder.Services.Configure<SecretKeyConfig>(builder.Configuration.GetSection("SecretKey"));
 builder.Services.AddSingleton<IEmotionResultService, EmotionResultsService>();
 builder.Services.AddScoped<ProcessingData>();
-builder.Services.AddScoped<YoutubeCrawlData>();
+builder.Services.AddScoped<YoutubeCrawlDataServices>();
 
 // đăng ký rabbitMQ services cho csv
 //builder.Services.AddHostedService<CSVConsumer>();
