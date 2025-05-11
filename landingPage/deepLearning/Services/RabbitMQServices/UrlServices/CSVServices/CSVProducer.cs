@@ -7,7 +7,7 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
 {
     public interface ICSVQueueProducerService
     {
-        Task SendCSVFileToRabbitMQ(string filePath);
+        Task SendCSVFileToRabbitMQ(string filePath, string channelName, string channelDes);
     }
 
     public class CSVProducer : ICSVQueueProducerService
@@ -22,7 +22,7 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
             _logger = logger;
             _csvQueueName = _configuration["RabbitMQ:CSVQueue"];
         }
-        public async Task SendCSVFileToRabbitMQ(string filePath)
+        public async Task SendCSVFileToRabbitMQ(string filePath, string channelName, string channelDes)
         {
             try
             {
@@ -31,6 +31,8 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
                     _logger.LogError("file path is null or empty");
                     return;
                 }
+                var entityName = "Lana Del Rey";
+                var entityDescription = "American singer-songwriter";
 
                 var factory = new ConnectionFactory
                 {
@@ -51,10 +53,12 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
                    arguments: null);
 
                 var fileInfo = new
-                {
+                {   
                     Id = GenerateFullTimestampId(),
                     FilePath = filePath,
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.UtcNow,
+                    ChannelName = channelName,
+                    ChannelDes = channelDes
                 };
 
                 var message = JsonConvert.SerializeObject(fileInfo);
@@ -69,7 +73,8 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
                    basicProperties: properties,
                    body: body);
 
-                _logger.LogInformation("Sent file info to RabbitMQ: {FilePath}, {Timestamp}", fileInfo.FilePath, DateTime.UtcNow.AddHours(7).ToString("HH:mm MM/dd/yyyy"));
+                Console.WriteLine("File Info JSON:");
+                Console.WriteLine(JsonConvert.SerializeObject(fileInfo, Formatting.Indented));
             }
             catch (Exception ex)
             {

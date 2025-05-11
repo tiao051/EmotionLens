@@ -44,6 +44,9 @@ namespace deepLearning.Controllers.AnalyzeController
             }
 
             string videoId = videoData.VideoId;
+            string channelName = videoData.EntityInfo.EntityName;
+            string channelDes = videoData.EntityInfo.Description;
+
             var comments = videoData.Comments;
 
             var filePath = await _csvManager.CreateCSVFileAsync(videoData.VideoInfo as JObject, comments, videoId);
@@ -57,14 +60,14 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
 
-            await _csvManager.PublishFilePathAsync(filePath);
+            await _csvManager.PublishFilePathAsync(filePath, channelName, channelDes);
 
             return new JsonResult(new
             {
                 success = true,
                 message = "CSV file created and sent successfully.",
                 filePath,
-                entity = videoData.EntityInfo // Optional: include entity info in response
+                entity = videoData.EntityInfo
             });
         }
 

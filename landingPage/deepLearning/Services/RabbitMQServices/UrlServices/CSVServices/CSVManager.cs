@@ -20,9 +20,9 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
             return await _exportService.CreateCSVFile(videoObj, comments, videoId);
         }
 
-        public async Task PublishFilePathAsync(string filePath)
+        public async Task PublishFilePathAsync(string filePath, string channelName, string channelDes)
         {
-            await _csvQueueProducerService.SendCSVFileToRabbitMQ(filePath);
+            await _csvQueueProducerService.SendCSVFileToRabbitMQ(filePath, channelName, channelDes);
         }
     }
 }
