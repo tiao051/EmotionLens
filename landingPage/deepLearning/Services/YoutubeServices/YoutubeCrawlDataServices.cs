@@ -51,7 +51,7 @@ namespace deepLearning.Services.YoutubeServices
                 // Gọi Knowledge Graph API để phân loại
                 var entityInfo = await GetEntityCategoryAsync(cleanedChannelTitle);
 
-                // Lấy comment và replies
+                //Lấy comment và replies
                 List<Tuple<string, string>> allComments = new List<Tuple<string, string>>();
                 string nextPageToken = null;
 
@@ -119,6 +119,72 @@ namespace deepLearning.Services.YoutubeServices
                 };
             }
         }
+        //public async Task<List<Tuple<string, string>>> GetYouTubeCommentsAsync(string videoId, string apiKey)
+        //{
+        //    List<Tuple<string, string>> allComments = new List<Tuple<string, string>>();
+        //    string nextPageToken = null;
+
+        //    using (HttpClient client = new HttpClient())
+        //    {
+        //        do
+        //        {
+        //            // Tạo URL để gọi API
+        //            string commentUrl = $"https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId={videoId}&key={apiKey}&maxResults=100";
+
+        //            // Nếu có nextPageToken, thêm vào URL để lấy trang tiếp theo
+        //            if (!string.IsNullOrEmpty(nextPageToken))
+        //            {
+        //                commentUrl += $"&pageToken={nextPageToken}";
+        //            }
+
+        //            // Gửi yêu cầu GET tới API
+        //            var commentResponse = await client.GetAsync(commentUrl);
+        //            if (!commentResponse.IsSuccessStatusCode)
+        //                break;
+
+        //            var commentJson = await commentResponse.Content.ReadAsStringAsync();
+        //            var commentObj = JObject.Parse(commentJson);
+
+        //            // Xử lý các comment chính (top-level comments)
+        //            if (commentObj["items"] != null && commentObj["items"].HasValues)
+        //            {
+        //                foreach (var item in commentObj["items"])
+        //                {
+        //                    var topComment = item["snippet"]["topLevelComment"]["snippet"];
+        //                    var comment = topComment["textDisplay"]?.ToString();
+        //                    var authorName = topComment["authorDisplayName"]?.ToString();
+        //                    if (!string.IsNullOrEmpty(comment))
+        //                    {
+        //                        allComments.Add(Tuple.Create(authorName, comment));
+        //                    }
+
+        //                    // Xử lý các replies nếu có
+        //                    if (item["replies"] != null && item["replies"]["comments"] != null)
+        //                    {
+        //                        foreach (var reply in item["replies"]["comments"])
+        //                        {
+        //                            var replySnippet = reply["snippet"];
+        //                            var replyText = replySnippet["textDisplay"]?.ToString();
+        //                            var replyAuthorName = replySnippet["authorDisplayName"]?.ToString();
+
+        //                            if (!string.IsNullOrEmpty(replyText))
+        //                            {
+        //                                allComments.Add(Tuple.Create(replyAuthorName, replyText));
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+
+        //            // Lấy nextPageToken để tiếp tục gọi API nếu còn trang tiếp theo
+        //            nextPageToken = commentObj["nextPageToken"]?.ToString();
+        //        }
+        //        while (!string.IsNullOrEmpty(nextPageToken));
+        //    }
+
+        //    return allComments;
+        //}
+
         private async Task<EntityInfoDTO> GetEntityCategoryAsync(string entityName)
         {
             Console.WriteLine("Chay vao day roi");

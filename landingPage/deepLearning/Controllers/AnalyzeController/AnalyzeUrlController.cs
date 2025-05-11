@@ -46,7 +46,6 @@ namespace deepLearning.Controllers.AnalyzeController
             string videoId = videoData.VideoId;
             string channelName = videoData.EntityInfo.EntityName;
             string channelDes = videoData.EntityInfo.Description;
-
             var comments = videoData.Comments;
 
             var filePath = await _csvManager.CreateCSVFileAsync(videoData.VideoInfo as JObject, comments, videoId);

@@ -73,7 +73,7 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
                    basicProperties: properties,
                    body: body);
 
-                Console.WriteLine("File Info JSON:");
+                Console.WriteLine("File Info JSON send to rabbitMQ:");
                 Console.WriteLine(JsonConvert.SerializeObject(fileInfo, Formatting.Indented));
             }
             catch (Exception ex)

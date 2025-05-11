@@ -14,7 +14,6 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
             _exportService = csvExportService;
             _csvQueueProducerService = csvQueueProducerService;
         }
-
         public async Task<string> CreateCSVFileAsync(JObject videoObj, List<Tuple<string, string>> comments, string videoId)
         {
             return await _exportService.CreateCSVFile(videoObj, comments, videoId);

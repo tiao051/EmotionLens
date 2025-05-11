@@ -38,21 +38,21 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
 
                 var lines = new List<string>();
 
-                // Video Info Section
-                if (videoObj["items"] != null && videoObj["items"].HasValues)
-                {
-                    var snippet = videoObj["items"][0]["snippet"];
-                    var statistics = videoObj["items"][0]["statistics"];
+                //// Video Info Section
+                //if (videoObj["items"] != null && videoObj["items"].HasValues)
+                //{
+                //    var snippet = videoObj["items"][0]["snippet"];
+                //    var statistics = videoObj["items"][0]["statistics"];
 
-                    lines.Add($"Channel:,{EscapeCsv(snippet["channelTitle"]?.ToString())}");
-                    lines.Add($"Channel ID:,{EscapeCsv(snippet["channelId"]?.ToString())}");
-                    lines.Add($"Tiêu đề:,{EscapeCsv(snippet["title"]?.ToString())}");
-                    lines.Add($"Mô tả:,{EscapeCsv(snippet["description"]?.ToString())}");
-                    lines.Add($"Views:,{EscapeCsv(statistics["viewCount"]?.ToString())}");
-                    lines.Add($"Likes:,{EscapeCsv(statistics["likeCount"]?.ToString())}");
-                }
+                //    lines.Add($"Channel:,{EscapeCsv(snippet["channelTitle"]?.ToString())}");
+                //    lines.Add($"Channel ID:,{EscapeCsv(snippet["channelId"]?.ToString())}");
+                //    lines.Add($"Tiêu đề:,{EscapeCsv(snippet["title"]?.ToString())}");
+                //    lines.Add($"Mô tả:,{EscapeCsv(snippet["description"]?.ToString())}");
+                //    lines.Add($"Views:,{EscapeCsv(statistics["viewCount"]?.ToString())}");
+                //    lines.Add($"Likes:,{EscapeCsv(statistics["likeCount"]?.ToString())}");
+                //}
 
-                lines.Add(""); // Empty line between sections
+                //lines.Add(""); // Empty line between sections
 
                 // Comments Section
                 lines.Add("Tên người dùng,Nội dung bình luận");
