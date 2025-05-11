@@ -69,7 +69,7 @@ def start_all_consumers():
         # {"queue": "audio_queue", "callback": lambda ch, m, p, b: asyncio.run(audio_consumer.create_audio_callback(audio_model)(ch, m, p, b))},
         {"queue": "img_queue", "callback": lambda ch, m, p, b: asyncio.run(image_consumer.callback_img(ch, m, p, b))},
         # {"queue": "img_queue", "callback": lambda ch, m, p, b: asyncio.run(img_callback()(ch, m, p, b))},
-        {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: asyncio.run(tiktok_consumer.callback_tiktok(ch, m, p, b))},
+        {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: asyncio.run(tiktok_consumer.process_tiktok_callbacks(ch, m, p, b))},
         {"queue": "csv_queue", "callback": url_consumer.callback_url} 
     ]
 

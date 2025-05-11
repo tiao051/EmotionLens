@@ -1,5 +1,5 @@
 from emotion_model.deepfaceAPI.deepfacemodel import analyze_image_emotion
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.preprocessing.image  import load_img, img_to_array
 import numpy as np
 
 def analyze_with_deepface(file_path):
