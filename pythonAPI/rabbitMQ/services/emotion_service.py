@@ -14,3 +14,4 @@ def analyze_with_model(file_path, model):
     predicted_class = np.argmax(prediction)
     emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
     return emotion_labels[predicted_class]
+
