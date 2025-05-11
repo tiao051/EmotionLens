@@ -63,7 +63,7 @@ def start_consumer(queue_name, callback):
         print(f"✅ Closed connection to RabbitMQ {queue_name}.")
         
 def start_all_consumers():
-    load_deepface_model()
+    # load_deepface_model()
     consumers = [
         {"queue": "txt_queue", "callback": lambda ch, m, p, b: asyncio.run(text_consumer.callback_txt(ch, m, p, b))},
         # {"queue": "audio_queue", "callback": lambda ch, m, p, b: asyncio.run(audio_consumer.create_audio_callback(audio_model)(ch, m, p, b))},
