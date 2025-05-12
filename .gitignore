@@ -54,8 +54,5 @@ Thumbs.db
 # dotenv file (useful for environment variables that should not be committed)
 .env
 
-# Log files
-*.log
-
 # User-specific file types
 .idea/
