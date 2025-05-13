@@ -2,7 +2,7 @@ import json
 import numpy as np
 from rabbitMQ.services.emotion_service import analyze_with_deepface
 from rabbitMQ.services.api_client import send_to_api_async
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.preprocessing.image import load_img, img_to_array #type: ignore
 from config import API_ENDPOINTS
 
 async def callback_img(ch, method, properties, body):

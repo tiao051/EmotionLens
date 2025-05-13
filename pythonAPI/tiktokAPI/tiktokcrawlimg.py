@@ -25,9 +25,9 @@ def extract_frame(video_path):
         os.makedirs(output_dir, exist_ok=True)
 
         command = [
-            r"D:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe",  # Đường dẫn đến FFmpeg
-            "-i", video_path,  # Đường dẫn video đầu vào
-            os.path.join(output_dir, "frame_%04d.jpg")  # Đường dẫn lưu các frame
+            r"D:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe",
+            "-i", video_path, 
+            os.path.join(output_dir, "frame_%04d.jpg")
         ]
 
         subprocess.run(command, check=True)

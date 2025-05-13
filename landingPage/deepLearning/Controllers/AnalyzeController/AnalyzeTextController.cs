@@ -41,16 +41,24 @@ namespace deepLearning.Controllers.AnalyzeFolder
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                return BadRequest("Missing or invalid ID.");
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Missing or invalid ID."
+                });
             }
 
             try
             {
                 var emotionResult = _emotionTextResultService.GetEmotionResult(id);
 
-                if (emotionResult == null) 
+                if (emotionResult == null)
                 {
-                    return NotFound("No emotion result found for the provided ID.");
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "No emotion result found for the provided ID."
+                    });
                 }
 
                 var response = new
@@ -59,18 +67,22 @@ namespace deepLearning.Controllers.AnalyzeFolder
                     message = "Success",
                     data = new
                     {
-                        emotionResult.Id,
-                        emotionResult.Emotion
+                        id = emotionResult.Id,
+                        emotion = emotionResult.Emotion ?? "No emotion detected"
                     }
                 };
 
-                _logger.LogInformation($"Tra ket qua: {JsonSerializer.Serialize(response)}");
+                _logger.LogInformation($"Trả kết quả: {JsonSerializer.Serialize(response)}");
 
                 return Ok(response);
             }
             catch (TaskCanceledException)
             {
-                return NotFound("Timeout: No text emotion result received within the expected time.");
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Timeout: No text emotion result received within the expected time."
+                });
             }
         }
     }

@@ -1,5 +1,4 @@
 from TikTokApi import TikTokApi
-import asyncio
 import os
 import csv
 import re

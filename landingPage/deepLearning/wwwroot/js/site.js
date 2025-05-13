@@ -60,6 +60,7 @@ function fetchTextEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000)
     let attempts = 0;
 
     const poll = () => {
+        console.log("api called");
         fetch(`/api/analyzeText/get-text-emotion-result?id=${fileId}`)
             .then(response => response.json())
             .then(data => {

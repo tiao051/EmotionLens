@@ -1,8 +1,8 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D, Dense, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import CategoricalCrossentropy
-from tensorflow.keras.regularizers import l2
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D, Dense, Dropout, BatchNormalization # type: ignore
+from tensorflow.keras.optimizers import Adam # type: ignore
+from tensorflow.keras.losses import CategoricalCrossentropy # type: ignore
+from tensorflow.keras.regularizers import l2 # type: ignore
 
 def build_improved_emotion_model(input_shape=(48, 48, 1), num_classes=7):
     model = Sequential()
@@ -32,7 +32,7 @@ def build_improved_emotion_model(input_shape=(48, 48, 1), num_classes=7):
     # Compile the model with label smoothing for better generalization
     model.compile(
         optimizer=Adam(learning_rate=0.0005),  # Lower learning rate for fine-tuning
-        loss=CategoricalCrossentropy(label_smoothing=0.1),  # Categorical Crossentropy loss with label smoothing
+        loss=CategoricalCrossentropy(label_smoothing=0.1),  # Use label_smoothing in loss
         metrics=['accuracy']  # Track accuracy during training
     )
 

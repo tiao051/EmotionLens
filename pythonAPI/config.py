@@ -5,7 +5,7 @@ load_dotenv()
 RABBITMQ_CONFIG = {
     "host": "localhost",
     "port": 5672,
-    "username": "test1",
+    "username": "admin",
     "password": os.getenv('RABBITMQ_PASSWORD')
 }
 
