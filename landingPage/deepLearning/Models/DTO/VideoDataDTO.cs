@@ -7,7 +7,7 @@ namespace deepLearning.Models.DTO
         public string VideoId { get; set; }
         public object VideoInfo { get; set; }
         public List<Tuple<string, string>> Comments { get; set; }
-        public EntityInfoDTO EntityInfo { get; set; }
+        public EntityInfoDTO? EntityInfo { get; set; }
 
     }
 }

@@ -110,12 +110,20 @@ namespace deepLearning.Services.YoutubeServices
                     Console.WriteLine($"Entity Name: {entityInfo.EntityName}");
                     Console.WriteLine($"Entity Description: {entityInfo.Description}");
                 }
+                else
+                {
+                    Console.WriteLine("Entity Info is null.");
+                }
                 return new VideoDataDTO
                 {
                     VideoId = videoId,
                     VideoInfo = videoObj,
                     Comments = allComments,
-                    EntityInfo = entityInfo
+                    EntityInfo = entityInfo ?? new EntityInfoDTO
+                    {
+                        EntityName = "Unknown",
+                        Description = "No entity found"
+                    }
                 };
             }
         }
@@ -211,7 +219,7 @@ namespace deepLearning.Services.YoutubeServices
                 var item = jsonResponse["itemListElement"]?.FirstOrDefault()?["result"];
                 if (item == null)
                 {
-                    Console.WriteLine("No entity found for: " + entityName); // Debugging: Print when no entity is found
+                    Console.WriteLine("No entity found for: " + entityName);
                     return null;
                 }
                 Console.WriteLine("Ra kq ne");
