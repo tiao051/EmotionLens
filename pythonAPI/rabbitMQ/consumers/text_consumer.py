@@ -56,10 +56,9 @@ async def callback_txt(ch, method, properties, body):
 
         print(f"Emotion analysis result for ID {file_id}: {predicted_label}")
 
-        # Gửi kết quả đến API
         result_message = {
             "Id": file_id,
-            "Emotion": predicted_label  # Đảm bảo luôn là string
+            "Emotion": predicted_label
         }
 
         print(f"Data sent to C#: {result_message}")

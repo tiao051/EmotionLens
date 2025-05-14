@@ -83,21 +83,6 @@ async def process_tiktok_callbacks(ch, method, properties, body):
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"✅ Tiktok URL with ID: {file_id} processed and acknowledged.")
 
-async def callback_tiktok(ch, method, properties, body):
-    message = json.loads(body)
-    file_id = message.get("Id")
-    url_content = message.get("Url")
-
-    if url_content:
-        print(f"Received ID: {file_id}")
-        print(f"Received URL: {url_content}")
-
-        # Tạo task xử lý song song
-        asyncio.create_task(process_tiktok_message(file_id, url_content))
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-    print(f"✅ Tiktok URL with ID: {file_id} acknowledged.")
-
 async def callback_tiktok_audio(ch, method, properties, body):
     message = json.loads(body)
     file_id = message.get("Id")

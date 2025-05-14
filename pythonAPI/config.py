@@ -18,7 +18,5 @@ API_ENDPOINTS = {
 
 TIKTOK_API_CONFIG = {
     "ms_token": os.getenv('TIKTOK_MS_TOKEN'),
-    "save_csv_path": "D:\\Deep_Learning\\dataSet\\exportData\\tiktokExport"
+    "save_csv_path": "D:\\Deep_Learning\\dataSet\\exportData\\pythonExportData\\tiktok_cmt_data"
 }
-
-# MODEL_NAME = "VGG-Face"

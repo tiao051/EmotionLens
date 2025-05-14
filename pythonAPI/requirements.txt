@@ -1,7 +1,7 @@
-numpy==1.23.5
+numpy==1.26.4
 matplotlib==3.7.1
-tensorflow==2.11.0
-keras==2.11.0
+tensorflow==2.19.0
+keras==3.9.2
 torch==2.7.0
 transformers==4.36.2
 datasets==2.16.1
