@@ -3,7 +3,6 @@ def train_efficientnet_emotion_model():
     from tensorflow.keras.applications.efficientnet import preprocess_input
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-    import os
 
     train_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/train'
     test_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/test'

@@ -75,17 +75,17 @@ def start_all_consumers():
         t.join()
 
 if __name__ == "__main__":
-    print("🎯 Starting all Rab  bitMQ consumers and model loading...")
+    print("🎯 Starting all RabbitMQ consumers and model loading...")
 
     # Chạy load_all_models song song với consumers
-    load_thread = threading.Thread(target=load_all_models)
+    # load_thread = threading.Thread(target=load_all_models)
     consumers_thread = threading.Thread(target=start_all_consumers)
     # train_all_models_thread = threading.Thread(target=train_all_models)
 
-    load_thread.start()
+    # load_thread.start()
     consumers_thread.start()
     # train_all_models_thread.start()
     
-    load_thread.join()
+    # load_thread.join()
     consumers_thread.join()
     # train_all_models_thread.join()
