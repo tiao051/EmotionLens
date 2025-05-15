@@ -29,24 +29,22 @@ async def procees_tiktok_frame_img(file_id, url_content):
     try:
         print(f"Processing TikTok frame image for ID: {file_id}")
 
-        # Tải video TikTok về máy
         video_path = download_imgframe_tiktok_video(url_content)
         if not video_path:
             print(f"❌ Không thể tải video từ URL: {url_content}")
-            return None  # Trả về None nếu không tải được video
+            return None 
 
-        # Trích xuất frame từ video
         frame_dir = extract_frame(video_path)
         if not frame_dir:
             print(f"❌ Không thể trích xuất frame từ video: {video_path}")
-            return None  # Trả về None nếu không trích xuất được frame
+            return None  
 
         print(f"✅ Frame image for video ID {file_id} has been processed successfully.")
-        return frame_dir  # Trả về đường dẫn thư mục chứa các frame
+        return frame_dir
 
     except Exception as e:
         print(f"❌ Failed to process frame image for video ID {file_id}. Error: {e}")
-        return None  # Trả về None nếu có lỗi
+        return None  
 
 async def process_tiktok_audio(file_id, url_content):
     try:
@@ -71,29 +69,12 @@ async def process_tiktok_callbacks(ch, method, properties, body):
 
     # Tạo các task xử lý song song
     tasks = [
-        asyncio.create_task(process_tiktok_message(file_id, url_content)),  # Xử lý crawl comment
-        asyncio.create_task(process_tiktok_audio(file_id, url_content)),    # Xử lý download audio
-        asyncio.create_task(procees_tiktok_frame_img(file_id, url_content))  # Xử lý crawl frame
+        asyncio.create_task(process_tiktok_message(file_id, url_content)),
+        asyncio.create_task(process_tiktok_audio(file_id, url_content)),    
+        asyncio.create_task(procees_tiktok_frame_img(file_id, url_content)) 
     ]
 
-    # Chờ tất cả các task hoàn thành
     await asyncio.gather(*tasks)
 
-    # Xác nhận message đã được xử lý
     ch.basic_ack(delivery_tag=method.delivery_tag)
     print(f"✅ Tiktok URL with ID: {file_id} processed and acknowledged.")
-
-async def callback_tiktok_audio(ch, method, properties, body):
-    message = json.loads(body)
-    file_id = message.get("Id")
-    url_content = message.get("Url")
-
-    if url_content:
-        print(f"Received ID: {file_id}")
-        print(f"Received URL: {url_content}")
-
-        # Tạo task xử lý song song
-        asyncio.create_task(process_tiktok_audio(file_id, url_content))
-
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-    print(f"✅ Tiktok audio with ID: {file_id} acknowledged.")

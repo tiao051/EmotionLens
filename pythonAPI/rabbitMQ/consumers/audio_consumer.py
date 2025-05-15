@@ -11,6 +11,7 @@ def create_audio_callback(model):
         print(f"Received ID: {file_id}")
         print(f"Received audio content: {file_path}")
 
+        # xử lý model
         try:
             emotion_result = "Happy"  
 

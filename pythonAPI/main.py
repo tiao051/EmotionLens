@@ -1,8 +1,8 @@
 import threading
 import asyncio
-from tensorflow.keras.models import load_model as keras_load_model # type: ignore
+from tensorflow.keras.models import load_model as keras_load_model  # type: ignore
 from emotion_model.deepfaceAPI.deepfacemodel import load_deepface_model
-from tensorflow.keras.models import load_model # type: ignore
+from tensorflow.keras.models import load_model  # type: ignore
 from rabbitMQ.connection.connection import get_rabbitmq_connection
 from emotion_model.efficientNet_model.build import build_finetune_efficientnet
 
@@ -12,15 +12,24 @@ from rabbitMQ.consumers import (
     tiktok_consumer,
     text_consumer,
     url_consumer,
+    frame_consumer
 )
 
-# AUDIO_MODEL_PATH = r"D:\Deep_Learning\main\pythonAPI\emotion_model\audio_model\audio_model.h5"
-# audio_model = keras_load_model(AUDIO_MODEL_PATH)
+# ✅ Wrapper xử lý chạy async task an toàn
+def run_async_task(coro):
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.create_task(coro)
+        else:
+            loop.run_until_complete(coro)
+    except RuntimeError:
+        asyncio.run(coro)
 
 def train_all_models():
     from emotion_model.img_model.train import train_img_emotion_model
     from emotion_model.efficientNet_model.train import train_efficientnet_emotion_model
-    
+
     train_img_emotion_model()
     train_efficientnet_emotion_model()
 
@@ -47,22 +56,24 @@ def start_consumer(queue_name, callback):
         print(f"🛑 Stopping {queue_name} consumer...")
         channel.stop_consuming()
     finally:
-        connection.close()
-        print(f"✅ Closed connection to RabbitMQ {queue_name}.")
-        
+        try:
+            connection.close()
+            print(f"✅ Closed connection to RabbitMQ {queue_name}.")
+        except Exception as e:
+            print(f"⚠️ Connection already closed or error on close: {e}")
+
 def start_all_consumers():
-    # Build EfficientNet model ONCE and create callback for image queue
+    # Load models
     efficientnet_model = build_finetune_efficientnet(input_shape=(48, 48, 3), num_classes=7)
     img_callback = image_consumer.create_img_callback(efficientnet_model)
     
-    # model = load_model('D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model')
-    # img_callback = image_consumer.create_img_callback(model)
     consumers = [
-        {"queue": "txt_queue", "callback": lambda ch, m, p, b: asyncio.run(text_consumer.callback_txt(ch, m, p, b))},
-        # {"queue": "audio_queue", "callback": lambda ch, m, p, b: asyncio.run(audio_consumer.create_audio_callback(audio_model)(ch, m, p, b))},
-        {"queue": "img_queue", "callback": lambda ch, m, p, b: asyncio.run(img_callback(ch, m, p, b))},
-        {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: asyncio.run(tiktok_consumer.process_tiktok_callbacks(ch, m, p, b))},
-        {"queue": "csv_queue", "callback": url_consumer.callback_url}
+        {"queue": "txt_queue", "callback": lambda ch, m, p, b: run_async_task(text_consumer.callback_txt(ch, m, p, b))},
+        # {"queue": "audio_queue", "callback": lambda ch, m, p, b: run_async_task(audio_consumer.create_audio_callback(audio_model)(ch, m, p, b))},
+        {"queue": "img_queue", "callback": lambda ch, m, p, b: run_async_task(img_callback(ch, m, p, b))},
+        {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: run_async_task(tiktok_consumer.process_tiktok_callbacks(ch, m, p, b))},
+        {"queue": "csv_queue", "callback": url_consumer.callback_url},  # sync callback
+        {"queue": "fps_queue", "callback": lambda ch, m , p, b: run_async_task(frame_consumer.callback_frame(ch, m, p, b))}
     ]
 
     threads = []

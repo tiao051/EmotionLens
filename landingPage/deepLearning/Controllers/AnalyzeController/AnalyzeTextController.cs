@@ -50,7 +50,7 @@ namespace deepLearning.Controllers.AnalyzeFolder
 
             try
             {
-                var emotionResult = _emotionTextResultService.GetEmotionResult(id);
+                var emotionResult =  _emotionTextResultService.GetEmotionResult(id);
 
                 if (emotionResult == null)
                 {
