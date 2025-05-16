@@ -1,23 +1,8 @@
 import json
 import numpy as np
-from rabbitMQ.services.emotion_service import analyze_with_deepface
 from rabbitMQ.services.api_client import send_to_api_async
 from tensorflow.keras.preprocessing.image import load_img, img_to_array #type: ignore
 from config import API_ENDPOINTS
-
-async def callback_img(ch, method, properties, body):
-    message = json.loads(body)
-    file_id = message.get("Id")
-    file_path = message.get("FilePath")
-
-    print(f"[Image] Received ID: {file_id}, Path: {file_path}")
-    try:
-        emotion = analyze_with_deepface(file_path)
-        result = { "Id": file_id, "Emotion": emotion }
-        await send_to_api_async(result, API_ENDPOINTS["image"])
-    except Exception as e:
-        print(f"❌ Error: {e}")
-    ch.basic_ack(delivery_tag=method.delivery_tag)
     
 def create_img_callback(model):
     async def callback_img_realmodel(ch, method, properties, body):

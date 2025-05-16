@@ -56,12 +56,13 @@ def process_video(video_id):
     }
 
     for fp, res in zip(frames, results):
-        print(f"✅ Frame: {fp} | Emotion: {res}")
         response["results"].append({
             "frame": fp,
             "emotion": res
         })
 
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+    
     return json.dumps(response, ensure_ascii=False, indent=2)
 
 def process_frame_message(body):

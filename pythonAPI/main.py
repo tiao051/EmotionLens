@@ -1,8 +1,7 @@
 import threading
 import asyncio
-from tensorflow.keras.models import load_model as keras_load_model  # type: ignore
-from emotion_model.deepfaceAPI.deepfacemodel import load_deepface_model
-from tensorflow.keras.models import load_model  # type: ignore
+# from tensorflow.keras.models import load_model as keras_load_model  # type: ignore
+# from tensorflow.keras.models import load_model  # type: ignore
 from rabbitMQ.connection.connection import get_rabbitmq_connection
 from emotion_model.efficientNet_model.build import build_finetune_efficientnet
 
@@ -27,14 +26,10 @@ def run_async_task(coro):
         asyncio.run(coro)
 
 def train_all_models():
-    # from emotion_model.img_model.train import train_img_emotion_model
     from emotion_model.efficientNet_model.train import train_efficientnet_emotion_model
-
-    # train_img_emotion_model()
     train_efficientnet_emotion_model()
 
 def load_all_models():
-    # load_deepface_model()
     text_consumer.load_text_model()
     # model = load_model('D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model')
     pass
@@ -91,12 +86,9 @@ if __name__ == "__main__":
     # Chạy load_all_models song song với consumers
     # load_thread = threading.Thread(target=load_all_models)
     consumers_thread = threading.Thread(target=start_all_consumers)
-    # train_all_models_thread = threading.Thread(target=train_all_models)
 
     # load_thread.start()
     consumers_thread.start()
-    # train_all_models_thread.start()
     
     # load_thread.join()
     consumers_thread.join()
-    # train_all_models_thread.join()
