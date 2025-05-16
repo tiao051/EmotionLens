@@ -1,6 +1,5 @@
 import json
-import cv2
-import re
+import cv2 # type: ignore
 import json
 import threading
 import numpy as np
@@ -40,12 +39,30 @@ def process_video(video_id):
     with lock:
         frames = frame_buffer.pop(video_id, [])
     if not frames:
-        return
+        return json.dumps({
+            "video_id": video_id,
+            "message": "No frames found",
+            "results": []
+        })
+
     print(f"🧠 Processing video {video_id} with {len(frames)} frames")
     images = [cv2.imread(fp, cv2.IMREAD_GRAYSCALE) for fp in frames]
     results = predict_batch(images)
+
+    response = {
+        "video_id": video_id,
+        "frame_count": len(frames),
+        "results": []
+    }
+
     for fp, res in zip(frames, results):
         print(f"✅ Frame: {fp} | Emotion: {res}")
+        response["results"].append({
+            "frame": fp,
+            "emotion": res
+        })
+
+    return json.dumps(response, ensure_ascii=False, indent=2)
 
 def process_frame_message(body):
     try:

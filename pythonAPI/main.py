@@ -91,12 +91,12 @@ if __name__ == "__main__":
     # Chạy load_all_models song song với consumers
     # load_thread = threading.Thread(target=load_all_models)
     consumers_thread = threading.Thread(target=start_all_consumers)
-    train_all_models_thread = threading.Thread(target=train_all_models)
+    # train_all_models_thread = threading.Thread(target=train_all_models)
 
     # load_thread.start()
     consumers_thread.start()
-    train_all_models_thread.start()
+    # train_all_models_thread.start()
     
     # load_thread.join()
     consumers_thread.join()
-    train_all_models_thread.join()
+    # train_all_models_thread.join()
