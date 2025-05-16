@@ -9,11 +9,9 @@ evaluate==0.4.3
 pandas==1.5.3
 scikit-learn==1.2.2
 gdown==5.2.0
-deepface==0.0.93
 TikTokApi==7.1.0
 emoji==2.14.1
 opencv-python==4.6.0.66
 pika==1.3.2
 requests==2.32.3
 urllib3==2.4.0
-opencv-python==4.6.0.66
