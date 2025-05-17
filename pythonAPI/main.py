@@ -25,7 +25,21 @@ def run_async_task(coro):
     result = loop.run_until_complete(coro)
     loop.close()
     return result
+def load_audio_model():
+    from emotion_model.audio_model.audio_emotion import EmotionRecognitionModel
+    import numpy as np
+    import os
+    from sklearn.preprocessing import LabelEncoder
 
+    audio_model_path = os.path.join(os.path.dirname(__file__), 'emotion_model', 'audio_model', 'crema_d_audio_emotion_bilstm.keras')
+    audio_labels_path = os.path.join(os.path.dirname(__file__), 'emotion_model', 'audio_model', 'crema_d_labels_seq.npy')
+    audio_model = EmotionRecognitionModel()
+    audio_model.load_model(audio_model_path)
+    audio_labels = np.load(audio_labels_path)
+    audio_label_encoder = LabelEncoder()
+    audio_label_encoder.fit(audio_labels)
+    audio_callback = audio_consumer.create_audio_callback(audio_model, audio_label_encoder)
+    return audio_callback
 
 def train_all_models():
     from emotion_model.efficientNet_model.train import train_efficientnet_emotion_model
@@ -34,7 +48,7 @@ def train_all_models():
 def load_all_models():
     text_consumer.load_text_model()
     comments_consumer.load_text_model()
-    # model = load_model('D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model')
+    # load_audio_model()
     pass
 
 def start_consumer(queue_name, callback):
@@ -64,13 +78,14 @@ def start_all_consumers():
     # Load models
     efficientnet_model = build_finetune_efficientnet(input_shape=(48, 48, 3), num_classes=7)
     img_callback = image_consumer.create_img_callback(efficientnet_model)
+    audio_callback = load_audio_model()
     
     consumers = [
         {"queue": "txt_queue", "callback": lambda ch, m, p, b: run_async_task(text_consumer.callback_txt(ch, m, p, b))},
-        # {"queue": "audio_queue", "callback": lambda ch, m, p, b: run_async_task(audio_consumer.create_audio_callback(audio_model)(ch, m, p, b))},
+        {"queue": "audio_queue", "callback": lambda ch, m, p, b: run_async_task(audio_callback(ch, m, p, b))},
         {"queue": "img_queue", "callback": lambda ch, m, p, b: run_async_task(img_callback(ch, m, p, b))},
         {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: run_async_task(tiktok_consumer.process_tiktok_callbacks(ch, m, p, b))},
-        {"queue": "csv_queue", "callback": url_consumer.callback_url},  # sync callback
+        {"queue": "csv_queue", "callback": url_consumer.callback_url}, 
         {"queue": "fps_queue", "callback": lambda ch, m , p, b: run_async_task(frame_consumer.callback_frame(ch, m, p, b))},
         {"queue": "comment_queue", "callback": lambda ch, m , p, b: run_async_task(comments_consumer.callback_comment(ch, m, p, b))}
     ]

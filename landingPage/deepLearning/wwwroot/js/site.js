@@ -183,17 +183,8 @@ function fetchAudioEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000
 
     const poll = () => {
         fetch(`/api/analyzeAudio/get-audio-emotion-result?id=${fileId}`)
-            .then(async response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const text = await response.text();
-                if (!text) {
-                    throw new Error("Empty response from server.");
-                }
-
-                const data = JSON.parse(text);
+            .then(response => response.json())
+            .then(data => {
                 console.log("Polling response:", data);
 
                 if (data && data.success && data.data && data.data.emotion) {
@@ -213,7 +204,7 @@ function fetchAudioEmotionResultPolling(fileId, maxAttempts = 10, delayMs = 2000
             })
             .catch(error => {
                 console.error("❌ Error fetching emotion result:", error);
-                showToast("Error while checking emotion result.", 'error');
+                showToast("Error while checking emotion result.");
             });
     };
 
