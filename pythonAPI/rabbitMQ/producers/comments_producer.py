@@ -1,4 +1,3 @@
-import os
 import json
 import pika
 from rabbitMQ.connection.connection import get_rabbitmq_connection

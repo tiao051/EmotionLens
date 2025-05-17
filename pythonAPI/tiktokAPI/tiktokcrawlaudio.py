@@ -39,3 +39,22 @@ def download_audio_from_tiktok(url):
             print(f"❌ Lỗi chuyển đổi MP3: {e}")
     else:
         print(f"✅ Không cần chuyển đổi: {downloaded_file}")
+
+def split_mp3_file(mp3_path, segment_length=10):
+    output_dir = os.path.join(os.path.dirname(mp3_path), "segments")
+    os.makedirs(output_dir, exist_ok=True)
+
+    command = [
+        r"D:\ffmpeg\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe",
+        "-i", mp3_path,
+        "-f", "segment",
+        "-segment_time", str(segment_length),
+        "-c", "copy",
+        os.path.join(output_dir, "output_%03d.mp3")
+    ]
+
+    try:
+        subprocess.run(command, check=True)
+        print(f"✅ Đã cắt file thành các đoạn dài {segment_length} giây.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Lỗi khi cắt file: {e}")
