@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
-
 from rabbitMQ.services.api_client import send_to_api_async
 from config import API_ENDPOINTS
 
@@ -15,7 +14,7 @@ id2label = None
 def load_text_model():
     global model, tokenizer, id2label
     # Đường dẫn tuyệt đối tới best_model
-    MODEL_DIR = Path(__file__).resolve().parent.parent.parent / 'emotion_model' / 'text_model' / 'best_model'
+    MODEL_DIR = Path(r"D:\Deep_Learning\main\pythonAPI\emotion_model\text_model\best_model")
     model = DistilBertForSequenceClassification.from_pretrained(MODEL_DIR)
     tokenizer = DistilBertTokenizer.from_pretrained(MODEL_DIR)
     model.eval()
