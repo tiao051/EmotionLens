@@ -17,7 +17,9 @@ def get_rabbitmq_connection():
                     credentials=pika.PlainCredentials(
                         RABBITMQ_CONFIG["username"],
                         RABBITMQ_CONFIG["password"]
-                    )
+                    ),
+                    heartbeat=600,
+                    blocked_connection_timeout=300,
                 ))
                 print("✅ Connected to RabbitMQ")
                 connection_event.set()
