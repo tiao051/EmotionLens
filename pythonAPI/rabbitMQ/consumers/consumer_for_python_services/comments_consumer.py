@@ -38,9 +38,6 @@ lock = threading.Lock()
 BATCH_SIZE = 16
 
 async def process_comment_batch_async(comments):
-    """
-    Chạy batch inference, in ra kết quả mà không gửi đi bất kỳ đâu.
-    """
     try:
         texts   = [c.get("Text",  "") for c in comments]
         authors = [c.get("author") for c in comments]
@@ -87,8 +84,5 @@ def process_comment_message(body):
         print(f"❌ Error processing comment message: {e}")
 
 async def callback_comment(ch, method, properties, body):
-    """
-    RabbitMQ callback đồng bộ: gom buffer, ack ngay.
-    """
     process_comment_message(body)
     ch.basic_ack(delivery_tag=method.delivery_tag)

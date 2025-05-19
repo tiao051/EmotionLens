@@ -10,6 +10,11 @@ def create_audio_callback(model, label_encoder):
         message = json.loads(body)
         file_id = message.get("Id")
         file_path = message.get("FilePath")
+        if "section_index" in message:
+            section_index = message["section_index"]
+            print(f"Received section_index: {section_index}")
+        else:
+            print("No section_index found in message")
 
         print(f"Received ID: {file_id}")
         print(f"Received audio content: {file_path}")

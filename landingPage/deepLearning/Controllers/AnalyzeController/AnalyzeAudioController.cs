@@ -28,7 +28,8 @@ namespace deepLearning.Controllers.AnalyzeController
             }
 
             try
-            {
+            {   
+                // tạo file
                 var savedPath = await _audioManager.SaveAudioAndGetUrlAsync(audioFile);
 
                 if (string.IsNullOrEmpty(savedPath))

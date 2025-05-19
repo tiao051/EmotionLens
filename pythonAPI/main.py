@@ -25,6 +25,7 @@ def run_async_task(coro):
     result = loop.run_until_complete(coro)
     loop.close()
     return result
+
 def load_audio_model():
     from emotion_model.audio_model.audio_emotion import EmotionRecognitionModel
     import numpy as np
@@ -87,7 +88,9 @@ def start_all_consumers():
         {"queue": "tiktok_queue", "callback": lambda ch, m, p, b: run_async_task(tiktok_consumer.process_tiktok_callbacks(ch, m, p, b))},
         {"queue": "csv_queue", "callback": url_consumer.callback_url}, 
         {"queue": "fps_queue", "callback": lambda ch, m , p, b: run_async_task(frame_consumer.callback_frame(ch, m, p, b))},
-        {"queue": "comment_queue", "callback": lambda ch, m , p, b: run_async_task(comments_consumer.callback_comment(ch, m, p, b))}
+        {"queue": "comment_queue", "callback": lambda ch, m , p, b: run_async_task(comments_consumer.callback_comment(ch, m, p, b))},
+        {"queue": "audio_sections_queue", "callback": lambda ch, m, p, b: run_async_task(audio_callback(ch, m, p, b))}
+
     ]
 
     threads = []
