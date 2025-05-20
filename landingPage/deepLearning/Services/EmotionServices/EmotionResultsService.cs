@@ -1,4 +1,5 @@
 ﻿using deepLearning.Models.DTO;
+using deepLearning.Models.DTO.MultiAudioModel;
 using deepLearning.Models.DTO.MultiImageModel;
 using deepLearning.Models.DTO.MultiTextModel;
 
@@ -9,15 +10,18 @@ namespace deepLearning.Services.EmotionServices
         void SaveEmotionResult(EmotionResultDTO result);
         void SaveVideoEmotionResult(VideoEmotionRequestDTO videoRequest);
         void SaveVideoCommentEmotionResult(VideoCommentEmotionRequestDTO videoRequest);
+        void SaveMultiAudioEmotionResult(MultiAudioEmotionResultDTO audioRequest);
         EmotionResultDTO GetEmotionResult(string id);
         List<FrameEmotionResult> GetVideoEmotionResult(string videoId);
         List<CommentEmotionResultDTO> GetVideoCommentEmotionResult(string videoId);
+        List<MultiAudioEmotionResultDTO> GetMultiAudioEmotionResult(string videoId);
     }
     public class EmotionResultsService : IEmotionResultService
     {
         private readonly Dictionary<string, EmotionResultDTO> _results = new();
         private readonly Dictionary<string, List<FrameEmotionResult>> _videoResults = new();
         private readonly Dictionary<string, List<CommentEmotionResultDTO>> _videoCommentResults = new();
+        private readonly Dictionary<string, List<MultiAudioEmotionResultDTO>> _multiAudioResults = new();
 
         public void SaveEmotionResult(EmotionResultDTO result)
         {
@@ -95,6 +99,31 @@ namespace deepLearning.Services.EmotionServices
             }
 
             Console.WriteLine("Video comment emotion result not found.");
+            return null;
+        }
+        public void SaveMultiAudioEmotionResult(MultiAudioEmotionResultDTO audioRequest)
+        {
+            Console.WriteLine($"Save audio emotion result for VideoId={audioRequest.VideoId}, Section={audioRequest.Section}");
+
+            if (!_multiAudioResults.ContainsKey(audioRequest.VideoId))
+            {
+                _multiAudioResults[audioRequest.VideoId] = new List<MultiAudioEmotionResultDTO>();
+            }
+
+            _multiAudioResults[audioRequest.VideoId].Add(audioRequest);
+
+            Console.WriteLine($"   Section: {audioRequest.Section}, Emotion: {audioRequest.Emotion}");
+        }
+
+        public List<MultiAudioEmotionResultDTO> GetMultiAudioEmotionResult(string videoId)
+        {
+            if (_multiAudioResults.TryGetValue(videoId, out var results))
+            {
+                Console.WriteLine($"Found {results.Count} audio section results for VideoId: {videoId}");
+                return results.OrderBy(r => r.Section).ToList();
+            }
+
+            Console.WriteLine("Audio section emotion result not found.");
             return null;
         }
     }

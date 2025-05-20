@@ -74,7 +74,6 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
         }
-        [HttpGet("get-audio-emotion-result")]
         public IActionResult GetAudioEmotionResult([FromQuery] string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -86,33 +85,56 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
 
-            var emotionResult =  _emotionAudioResultService.GetEmotionResult(id);
-
             _logger.LogInformation("Checking for emotion result with id: {Id}", id);
 
-            Console.WriteLine($"emotionResult:{emotionResult}");
-            if (emotionResult == null)
+            // 1. Check single audio result
+            var singleResult = _emotionAudioResultService.GetEmotionResult(id);
+
+            if (singleResult != null)
             {
-                return NotFound(new
+                var response = new
                 {
-                    success = false,
-                    message = "Emotion audio result not found."
-                });
+                    success = true,
+                    message = "Single audio emotion result found.",
+                    data = new
+                    {
+                        Id = singleResult.Id,
+                        Emotion = singleResult.Emotion
+                    }
+                };
+
+                _logger.LogInformation("Returned single audio result: {Result}", JsonSerializer.Serialize(response));
+                return Ok(response);
             }
 
-            var response = new
-            {
-                success = true,
-                message = "Success",
-                data = new
-                {
-                    emotionResult.Id,
-                    emotionResult.Emotion
-                }
-            };
+            // 2. Check multi audio result
+            var multiResults = _emotionAudioResultService.GetMultiAudioEmotionResult(id);
 
-            _logger.LogInformation("Returned emotion result: {Result}", JsonSerializer.Serialize(response));
-            return Ok(response);
+            if (multiResults != null && multiResults.Any())
+            {
+                var response = new
+                {
+                    success = true,
+                    message = "Multiple audio section emotion results found.",
+                    data = multiResults.Select(r => new
+                    {
+                        r.VideoId,
+                        r.Section,
+                        r.Emotion,
+                        r.Probs // optional, will be null if not present
+                    }).ToList()
+                };
+
+                _logger.LogInformation("Returned multi audio results: {Result}", JsonSerializer.Serialize(response));
+                return Ok(response);
+            }
+
+            // Not found
+            return NotFound(new
+            {
+                success = false,
+                message = "No audio emotion result found for the provided ID."
+            });
         }
     }
 }

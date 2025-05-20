@@ -1,4 +1,5 @@
 ﻿using deepLearning.Models.DTO;
+using deepLearning.Models.DTO.MultiAudioModel;
 using deepLearning.Models.DTO.MultiImageModel;
 using deepLearning.Models.DTO.MultiTextModel;
 using deepLearning.Services.EmotionServices;
@@ -53,17 +54,21 @@ namespace deepLearning.Controllers.DataController
         }
 
         [HttpPost("multi-data-audio")]
-        public IActionResult ReceiveDataAudio([FromBody] EmotionResultDTO data)
+        public IActionResult ReceiveDataAudio([FromBody] MultiAudioEmotionResultDTO data)
         {
-            Console.WriteLine("ReceiveData audio actived");
-            if (data == null || string.IsNullOrEmpty(data.Id) || string.IsNullOrEmpty(data.Emotion))
+            Console.WriteLine("ReceiveData audio activated");
+
+            if (data == null || string.IsNullOrEmpty(data.VideoId) || string.IsNullOrEmpty(data.Emotion))
             {
-                return BadRequest("Invalid text data.");
+                return BadRequest("Invalid audio data.");
             }
 
-            _emotionResultService.SaveEmotionResult(data);
+            Console.WriteLine($"Received audio emotion result: VideoId={data.VideoId}, Section={data.Section}, Emotion={data.Emotion}");
 
-            _logger.LogInformation("Saved audio emotion result: {Id} => {Emotion}", data.Id, data.Emotion);
+            _emotionResultService.SaveMultiAudioEmotionResult(data);
+
+            _logger.LogInformation("Saved audio emotion result: {VideoId} Section: {Section} => {Emotion}", data.VideoId, data.Section, data.Emotion);
+
             return Ok("Data audio received.");
         }
     }

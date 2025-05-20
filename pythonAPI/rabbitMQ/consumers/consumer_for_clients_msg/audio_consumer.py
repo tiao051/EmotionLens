@@ -32,17 +32,22 @@ def create_audio_callback(model, label_encoder):
 
             print(f"Emotion analysis result for ID {file_id}: {emotion_result}")
 
-            result_message = {
-                "Id": file_id,
-                "Emotion": emotion_result,
-                "Probs": {label: float(prob) for label, prob in zip(label_encoder.classes_, probs)}
-            }
-
             if section_index is not None:
-                result_message["section_index"] = section_index
-                print(f"Send multi audio audio to C#: {section_index}")
+                result_message = {
+                    "VideoId": file_id,
+                    "Section": section_index,
+                    "Emotion": emotion_result,
+                    "Probs": {label: float(prob) for label, prob in zip(label_encoder.classes_, probs)}
+                }
+                print(f"Send multi audio to C#: Section {section_index}")
                 await send_to_api_async(result_message, API_ENDPOINTS["multi_audio"])
             else:
+                result_message = {
+                    "Id": file_id,
+                    "Emotion": emotion_result,
+                    "Probs": {label: float(prob) for label, prob in zip(label_encoder.classes_, probs)}
+                }
+                print("Send single audio to C#")
                 await send_to_api_async(result_message, API_ENDPOINTS["audio"])
 
             print(f"Data sent to C#: {result_message}")
@@ -54,3 +59,4 @@ def create_audio_callback(model, label_encoder):
         print(f"Audio with ID: {file_id} processed and acknowledged.")
 
     return callback_audio
+
