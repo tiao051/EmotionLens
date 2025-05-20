@@ -7,6 +7,7 @@ using deepLearning.Services.RabbitMQServices.TextServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TikTokServices;
+using deepLearning.Services.TiktokServices;
 using deepLearning.Services.YoutubeServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,7 @@ builder.Services.Configure<SecretKeyConfig>(builder.Configuration.GetSection("Se
 builder.Services.AddSingleton<IEmotionResultService, EmotionResultsService>();
 builder.Services.AddScoped<ProcessingData>();
 builder.Services.AddScoped<YoutubeCrawlDataServices>();
+builder.Services.AddScoped<TiktokHelper>();
 
 // đăng ký rabbitMQ services cho csv
 //builder.Services.AddHostedService<CSVConsumer>();

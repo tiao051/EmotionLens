@@ -87,7 +87,6 @@ namespace deepLearning.Controllers.AnalyzeController
 
             _logger.LogInformation("Checking for emotion result with id: {Id}", id);
 
-            // 1. Check single audio result
             var singleResult = _emotionAudioResultService.GetEmotionResult(id);
 
             if (singleResult != null)
@@ -98,43 +97,22 @@ namespace deepLearning.Controllers.AnalyzeController
                     message = "Single audio emotion result found.",
                     data = new
                     {
-                        Id = singleResult.Id,
-                        Emotion = singleResult.Emotion
+                        singleResult.Id,
+                        singleResult.Emotion
                     }
                 };
 
                 _logger.LogInformation("Returned single audio result: {Result}", JsonSerializer.Serialize(response));
                 return Ok(response);
             }
-
-            // 2. Check multi audio result
-            var multiResults = _emotionAudioResultService.GetMultiAudioEmotionResult(id);
-
-            if (multiResults != null && multiResults.Any())
+            else
             {
-                var response = new
+                return NotFound(new
                 {
-                    success = true,
-                    message = "Multiple audio section emotion results found.",
-                    data = multiResults.Select(r => new
-                    {
-                        r.VideoId,
-                        r.Section,
-                        r.Emotion,
-                        r.Probs // optional, will be null if not present
-                    }).ToList()
-                };
-
-                _logger.LogInformation("Returned multi audio results: {Result}", JsonSerializer.Serialize(response));
-                return Ok(response);
+                    success = false,
+                    message = "No audio emotion result found for the provided ID."
+                });
             }
-
-            // Not found
-            return NotFound(new
-            {
-                success = false,
-                message = "No audio emotion result found for the provided ID."
-            });
         }
     }
 }

@@ -15,9 +15,11 @@
             try {
                 const result = JSON.parse(textData);
                 console.log("Result:", result);
+                return result;
             } catch (jsonError) {
                 console.error("❌ Error parsing JSON:", jsonError);
                 showToast("Server returned invalid data.");
+                return null;
             }
         } else {
             throw new Error("No data returned from the server.");
@@ -25,6 +27,7 @@
     } catch (error) {
         console.error("❌ Error:", error);
         showToast("An error occurred during analysis.");
+        return null;
     }
 }
 function analyzeSentimentComment() {
@@ -45,7 +48,7 @@ function analyzeSentimentComment() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message, 'success'); 
+                showToast(data.message, 'success');  
                 console.log(data.fileId);
                 fetchTextEmotionResultPolling(data.fileId);
             } else {
@@ -231,9 +234,48 @@ function analyzeSentimentUrl() {
     }
 
     if (isYouTubeUrl(url)) {
-        analyzeSentiment("/api/analyzeUrl/youtube", { url });
+        fetch("/api/analyzeUrl/youtube", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ url })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("FileId:", data.fileId);
+                    // Call the function to fetch multi-emotion data with fileId
+                    fetchMultiEmotionData(data.fileId);
+                } else {
+                    showToast(data.message || "Error analyzing the URL.", 'error');
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                showToast("Error analyzing the URL: " + error.message, 'error');
+            });
     } else if (isTikTokUrl(url)) {
-        analyzeSentiment("/api/analyzeUrl/tiktok", { url });
+        fetch("/api/analyzeUrl/tiktok", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ url })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("FileId:", data.videoId);
+                    fetchMultiEmotionData(data.videoId);
+                } else {
+                    showToast(data.message || "Error analyzing the URL.", 'error');
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                showToast("Error analyzing the URL: " + error.message, 'error');
+            });
     } else {
         showToast("❌ Only YouTube or TikTok URLs are supported.");
     }
@@ -274,11 +316,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (analyzeImgBtn) analyzeImgBtn.addEventListener("click", analyzeSentimentImg);
     if (analyzeAudioBtn) analyzeAudioBtn.addEventListener("click", analyzeSentimentAudio);
 });
+const toastQueue = []; 
+let isToastVisible = false; 
+
 function showToast(message, type = 'error') {
+    toastQueue.push({ message, type });
+
+    if (!isToastVisible) {
+        displayNextToast();
+    }
+}
+
+function displayNextToast() {
+    if (toastQueue.length === 0) {
+        isToastVisible = false; 
+        return;
+    }
+
+    isToastVisible = true;
+    const { message, type } = toastQueue.shift();
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.classList.add('toast');
 
+    // Đặt màu sắc dựa trên loại thông báo
     if (type === 'success') {
         toast.style.backgroundColor = '#4CAF50'; 
     } else if (type === 'warning') {
@@ -288,12 +349,67 @@ function showToast(message, type = 'error') {
     }
 
     toast.innerHTML = `${message}`;
-
     toastContainer.appendChild(toast);
 
+    // Hiển thị toast
     setTimeout(() => toast.classList.add('show'), 100);
+
+    // Ẩn toast sau 3 giây và hiển thị toast tiếp theo
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(() => {
+            toast.remove();
+            displayNextToast(); // Hiển thị toast tiếp theo trong hàng đợi
+        }, 300);
     }, 3000);
+}
+
+function fetchMultiEmotionData(videoId) {
+    showToast("Fetching emotion data...", "warning");
+
+    fetchMultiEmotionResultPolling(videoId);
+}
+
+function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 3000) {
+    let attempts = 0;
+    let results = { text: null, audio: null, image: null };
+
+    const poll = () => {
+        console.log(`Polling attempt ${attempts + 1}: /api/DisplayEmotion/get-multi-emotion-result?id=${videoId}`);
+
+        fetch(`/api/DisplayEmotion/get-multi-emotion-result?id=${encodeURIComponent(videoId)}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log("Polling response:", data);
+
+                if (data && data.success && data.data) {
+                    // Update results with available data
+                    results.text = results.text || data.data.text;
+                    results.audio = results.audio || data.data.audio;
+                    results.image = results.image || data.data.image;
+
+                    // Check if all three types of data are available
+                    if (results.text && results.audio && results.image) {
+                        console.log("✅ All multi-emotion results are ready");
+                        showToast("All emotion analysis results retrieved successfully!", "success");
+                        return;
+                    }
+                }
+
+                if (attempts < maxAttempts) {
+                    attempts++;
+                    console.log(`⏳ Attempt ${attempts}: result not ready, retrying in ${delayMs}ms...`);
+                    setTimeout(poll, delayMs);
+                } else {
+                    console.log("❌ Emotion result not fully available after multiple attempts.");
+                    showToast("Emotion analysis results are partially available. Please check the available data.", "warning");
+                    console.log("Available results:", results);
+                }
+            })
+            .catch(error => {
+                console.error("❌ Error fetching multi-emotion result:", error);
+                showToast("Error while retrieving emotion analysis results: " + error.message, "error");
+            });
+    };
+    poll();
 }

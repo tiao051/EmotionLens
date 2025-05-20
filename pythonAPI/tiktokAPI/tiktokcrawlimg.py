@@ -3,6 +3,7 @@ import yt_dlp
 import os
 import cv2
 from datetime import datetime
+from tiktokAPI.tiktokcrawldata import extract_video_id
 from rabbitMQ.producers.frame_producer import FrameQueueProducer
 
 def download_imgframe_tiktok_video(url):
@@ -23,8 +24,10 @@ def download_imgframe_tiktok_video(url):
         print(f"✅ Video đã được tải xuống: {downloaded_file}")
         return downloaded_file 
     
-def extract_frame(video_path, output_dir=None):
-    video_id = os.path.basename(os.path.dirname(video_path))
+def extract_frame(video_path, url_content, output_dir=None):
+    print(f"ℹ️ Đường dẫn video: {url_content}")
+    video_id = extract_video_id(url_content)
+    print(f"🎞️ Đang trích xuất frame từ video ID: {video_id}")
     # Nếu chưa truyền output_dir thì lấy cùng folder với video
     if output_dir is None:
         output_dir = os.path.dirname(video_path)

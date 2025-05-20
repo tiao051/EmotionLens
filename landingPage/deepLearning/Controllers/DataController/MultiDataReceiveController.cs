@@ -32,6 +32,7 @@ namespace deepLearning.Controllers.DataController
 
             return Ok("Data img received.");
         }
+
         [HttpPost("multi-data-text")]
         public IActionResult ReceiveDataText([FromBody] VideoCommentEmotionRequestDTO data)
         {
@@ -50,7 +51,7 @@ namespace deepLearning.Controllers.DataController
             _emotionResultService.SaveVideoCommentEmotionResult(data);
 
             _logger.LogInformation("Saved batch text emotion results for VideoId: {VideoId}", data.VideoId);
-            return Ok("Data text received.");
+            return Ok(new { success = true, message = "Data text received.", fileId = data.VideoId });
         }
 
         [HttpPost("multi-data-audio")]

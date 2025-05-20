@@ -74,6 +74,7 @@ def normalize_comment(text):
     return text
 
 def extract_video_id(tiktok_url):
+    print(f"URL received: {tiktok_url}")
     match = re.search(r'/video/(\d+)', tiktok_url)
     if not match:
         match = re.search(r'/photo/(\d+)', tiktok_url)

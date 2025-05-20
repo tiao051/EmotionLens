@@ -1,6 +1,7 @@
 ﻿using deepLearning.Models.DTO;
 using deepLearning.Services.RabbitMQServices.UrlServices.CSVServices;
 using deepLearning.Services.RabbitMQServices.UrlServices.TiktokServices;
+using deepLearning.Services.TiktokServices;
 using deepLearning.Services.YoutubeServices;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -14,11 +15,18 @@ namespace deepLearning.Controllers.AnalyzeController
         private readonly CSVManager _csvManager;
         private readonly YoutubeCrawlDataServices _youtubeCrawlDataServices;
         private readonly TiktokManager _tiktokManager;
-        public AnalyzeUrlController(CSVManager csvManager, TiktokManager tiktokManager, YoutubeCrawlDataServices youtubeCrawlDataServices)
+        private readonly TiktokHelper _tiktokHelper;
+        public AnalyzeUrlController(
+            CSVManager csvManager,
+            TiktokManager tiktokManager,
+            YoutubeCrawlDataServices youtubeCrawlDataServices,
+            TiktokHelper tiktokHelper
+            )
         {
             _csvManager = csvManager;
             _tiktokManager = tiktokManager;
             _youtubeCrawlDataServices = youtubeCrawlDataServices;
+            _tiktokHelper = tiktokHelper;
         }
         [HttpPost("youtube")]
         public async Task<JsonResult> AnalyzeYoutubeUrl([FromBody] UrlRequestDTO request)
@@ -73,13 +81,34 @@ namespace deepLearning.Controllers.AnalyzeController
         [HttpPost("tiktok")]
         public async Task<JsonResult> AnalyzeTiktokUrl([FromBody] UrlRequestDTO request)
         {
+            if (string.IsNullOrEmpty(request.Url))
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "URL is required."
+                });
+            }
+
             await _tiktokManager.PublishTiktokMessageAsync(request.Url);
+
+            string videoId = _tiktokHelper.ExtractVideoId(request.Url);
+
+            if (string.IsNullOrEmpty(videoId))
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Invalid TikTok URL. Could not extract video ID."
+                });
+            }
 
             return new JsonResult(new
             {
                 success = true,
                 message = "Tiktok file created and sent successfully.",
-                request.Url
+                videoId, 
+                url = request.Url
             });
         }
     }

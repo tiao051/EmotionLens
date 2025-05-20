@@ -23,6 +23,8 @@ namespace deepLearning.Services.EmotionServices
         private readonly Dictionary<string, List<CommentEmotionResultDTO>> _videoCommentResults = new();
         private readonly Dictionary<string, List<MultiAudioEmotionResultDTO>> _multiAudioResults = new();
 
+        //single emotion
+
         public void SaveEmotionResult(EmotionResultDTO result)
         {
             Console.WriteLine($"Save single emotion result: Id={result.Id}, Emotion={result.Emotion}");
@@ -42,6 +44,9 @@ namespace deepLearning.Services.EmotionServices
             Console.WriteLine("Result not found.");
             return null;
         }
+
+        //img
+
         public void SaveVideoEmotionResult(VideoEmotionRequestDTO videoRequest)
         {
             Console.WriteLine($"Save batch emotion results for VideoId={videoRequest.VideoId}");
@@ -55,7 +60,7 @@ namespace deepLearning.Services.EmotionServices
             {
                 _videoResults[videoRequest.VideoId].Add(frameResult);
 
-                Console.WriteLine($"   Frame: {frameResult.Frame}, Emotion: {frameResult.Emotion}");
+                Console.WriteLine($"Frame: {frameResult.Frame}, Emotion: {frameResult.Emotion}");
             }
         }
 
@@ -71,6 +76,8 @@ namespace deepLearning.Services.EmotionServices
             Console.WriteLine("Video emotion result not found.");
             return null;
         }
+
+        //text
 
         public void SaveVideoCommentEmotionResult(VideoCommentEmotionRequestDTO videoRequest)
         {
@@ -101,6 +108,9 @@ namespace deepLearning.Services.EmotionServices
             Console.WriteLine("Video comment emotion result not found.");
             return null;
         }
+
+        //audio
+
         public void SaveMultiAudioEmotionResult(MultiAudioEmotionResultDTO audioRequest)
         {
             Console.WriteLine($"Save audio emotion result for VideoId={audioRequest.VideoId}, Section={audioRequest.Section}");

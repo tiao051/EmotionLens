@@ -34,7 +34,7 @@ async def procees_tiktok_frame_img(file_id, url_content):
             print(f"❌ Không thể tải video từ URL: {url_content}")
             return None 
 
-        frame_dir = extract_frame(video_path)
+        frame_dir = extract_frame(video_path, url_content)
         if not frame_dir:
             print(f"❌ Không thể trích xuất frame từ video: {video_path}")
             return None  
