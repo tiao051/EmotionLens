@@ -50,31 +50,56 @@ namespace deepLearning.Controllers.AnalyzeFolder
 
             try
             {
-                var emotionResult =  _emotionTextResultService.GetEmotionResult(id);
+                // Lấy kết quả batch (list)
+                var batchResults = _emotionTextResultService.GetVideoCommentEmotionResult(id);
 
-                if (emotionResult == null)
+                if (batchResults != null && batchResults.Any())
                 {
-                    return NotFound(new
+                    // Trả về dạng batch
+                    var responseBatch = new
                     {
-                        success = false,
-                        message = "No emotion result found for the provided ID."
-                    });
+                        success = true,
+                        message = "Success - batch results",
+                        data = batchResults.Select(r => new
+                        {
+                            author = r.Author,
+                            emotion = r.Result ?? "No emotion detected"
+                        })
+                    };
+
+                    _logger.LogInformation($"Trả kết quả batch: {JsonSerializer.Serialize(responseBatch)}");
+
+                    return Ok(responseBatch);
                 }
-
-                var response = new
+                else
                 {
-                    success = true,
-                    message = "Success",
-                    data = new
+                    // Nếu không có batch thì lấy đơn lẻ
+                    var singleResult = _emotionTextResultService.GetEmotionResult(id);
+
+                    if (singleResult == null)
                     {
-                        id = emotionResult.Id,
-                        emotion = emotionResult.Emotion ?? "No emotion detected"
+                        return NotFound(new
+                        {
+                            success = false,
+                            message = "No emotion result found for the provided ID."
+                        });
                     }
-                };
 
-                _logger.LogInformation($"Trả kết quả: {JsonSerializer.Serialize(response)}");
+                    var responseSingle = new
+                    {
+                        success = true,
+                        message = "Success - single result",
+                        data = new
+                        {
+                            id = singleResult.Id,
+                            emotion = singleResult.Emotion ?? "No emotion detected"
+                        }
+                    };
 
-                return Ok(response);
+                    _logger.LogInformation($"Trả kết quả đơn lẻ: {JsonSerializer.Serialize(responseSingle)}");
+
+                    return Ok(responseSingle);
+                }
             }
             catch (TaskCanceledException)
             {

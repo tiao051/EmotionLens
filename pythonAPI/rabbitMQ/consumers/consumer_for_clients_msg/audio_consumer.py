@@ -6,12 +6,14 @@ def create_audio_callback(model, label_encoder):
     from emotion_model.audio_model.audio_emotion import AudioFeatureExtractor
     import numpy as np
     feature_extractor = AudioFeatureExtractor()
+
     async def callback_audio(ch, method, properties, body):
         message = json.loads(body)
         file_id = message.get("Id")
         file_path = message.get("FilePath")
-        if "section_index" in message:
-            section_index = message["section_index"]
+        section_index = message.get("section_index", None)
+
+        if section_index is not None:
             print(f"Received section_index: {section_index}")
         else:
             print("No section_index found in message")
@@ -22,6 +24,7 @@ def create_audio_callback(model, label_encoder):
         try:
             # Trích xuất đặc trưng MFCC
             features = feature_extractor.extract_mfcc_from_file(file_path)
+
             # Dự đoán xác suất các lớp
             probs = model.predict(features)[0]
             pred_idx = np.argmax(probs)
@@ -34,13 +37,20 @@ def create_audio_callback(model, label_encoder):
                 "Emotion": emotion_result,
                 "Probs": {label: float(prob) for label, prob in zip(label_encoder.classes_, probs)}
             }
-            print(f"Data sent to C#: {result_message}")
 
-            await send_to_api_async(result_message, API_ENDPOINTS["audio"])
+            if section_index is not None:
+                result_message["section_index"] = section_index
+                print(f"Send multi audio audio to C#: {section_index}")
+                await send_to_api_async(result_message, API_ENDPOINTS["multi_audio"])
+            else:
+                await send_to_api_async(result_message, API_ENDPOINTS["audio"])
+
+            print(f"Data sent to C#: {result_message}")
 
         except Exception as e:
             print(f"Error processing audio with ID {file_id}: {e}")
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
         print(f"Audio with ID: {file_id} processed and acknowledged.")
+
     return callback_audio

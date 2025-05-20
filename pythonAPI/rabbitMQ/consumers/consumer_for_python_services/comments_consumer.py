@@ -2,6 +2,8 @@ import json
 import threading
 import asyncio
 from collections import defaultdict
+from config import API_ENDPOINTS
+from rabbitMQ.services.api_client import send_to_api_async
 import torch
 
 def map_emotion_label(class_id):
@@ -24,20 +26,47 @@ def create_comment_callback(model, tokenizer, id2label):
 
     async def process_comment_batch_async(comments):
         try:
-            texts   = [c.get("Text",  "") for c in comments]
+            texts = [c.get("Text", "") for c in comments]
             authors = [c.get("author") for c in comments]
+            video_id = comments[0].get("video_id", "unknown")
 
             inputs = tokenizer(texts, return_tensors="pt", truncation=True, padding=True, max_length=128)
             with torch.no_grad():
                 outputs = model(**inputs)
                 predicted_ids = torch.argmax(outputs.logits, dim=1).tolist()
 
+            result_message = {
+                "VideoId": video_id,
+                "Results": []
+            }
+
+            results = []
             for idx, class_id in enumerate(predicted_ids):
+                author = authors[idx]
                 label = map_emotion_label(class_id)
-                print(f"[Batch] {authors[idx]} → {label}")
+                if not author or not label:
+                    print(f"⚠️ Bỏ qua comment không hợp lệ: author={author}, emotion={label}")
+                    continue
+                print(f"[Batch] {author} → {label}")
+                results.append({
+                    "Author": author,    
+                    "Result": label
+                })
+
+            if results:
+                result_message = {
+                    "VideoId": video_id, 
+                    "Results": results
+                }
+                print(f"Sending batch result to C#:")
+                await send_to_api_async(result_message, API_ENDPOINTS["multi_text"])
+            else:
+                print("⚠️ Không có comment hợp lệ nào để gửi batch.")
 
         except Exception as e:
             print(f"❌ Error in batch processing comments: {e}")
+
+
 
     def process_comment_video(video_id):
         with lock:

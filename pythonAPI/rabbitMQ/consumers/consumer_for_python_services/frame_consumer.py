@@ -1,10 +1,13 @@
+import asyncio
 import json
 import cv2 # type: ignore
 import json
 import threading
 import numpy as np
+from config import API_ENDPOINTS
 from collections import defaultdict
 from emotion_model.efficientNet_model.build import build_finetune_efficientnet
+from rabbitMQ.services.api_client import send_to_api_async
 
 # Load EfficientNet model once
 efficientnet_model = build_finetune_efficientnet(input_shape=(48, 48, 3), num_classes=7)
@@ -50,19 +53,26 @@ def process_video(video_id):
     results = predict_batch(images)
 
     response = {
-        "video_id": video_id,
-        "frame_count": len(frames),
-        "results": []
+        "VideoId": video_id,
+        "FrameCount": len(frames),
+        "Results": []
     }
 
     for fp, res in zip(frames, results):
-        response["results"].append({
-            "frame": fp,
-            "emotion": res
+        response["Results"].append({
+            "Frame": fp,
+            "Emotion": res
         })
 
     print(json.dumps(response, ensure_ascii=False, indent=2))
     
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    print(f"Sending batch frame result to C#:")
+    loop.run_until_complete(send_to_api_async(response, API_ENDPOINTS["multi_image"]))
+    loop.close()
+
     return json.dumps(response, ensure_ascii=False, indent=2)
 
 def process_frame_message(body):

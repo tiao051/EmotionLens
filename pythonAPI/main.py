@@ -37,6 +37,9 @@ from rabbitMQ.consumers.consumer_for_python_services import (
     comments_consumer,
 )
 
+def train_img_model():
+    from emotion_model.efficientNet_model.train import train_efficientnet_emotion_model
+    train_efficientnet_emotion_model()
 def run_async_task(coro):
     try:
         loop = asyncio.get_event_loop()
@@ -48,7 +51,7 @@ def run_async_task(coro):
     else:
         return loop.run_until_complete(coro)
 
-def load_audio_model():
+def load_audio_model():    
     from emotion_model.audio_model.audio_emotion import EmotionRecognitionModel
     import numpy as np
     from sklearn.preprocessing import LabelEncoder
@@ -129,6 +132,8 @@ def start_all_consumers():
             f.result()
 
 if __name__ == "__main__":
+    # logging.warning("Starting train models..")
+    # train_img_model()
     logging.warning("Starting all RabbitMQ consumers and loading models...")
     start_all_consumers()
     logging.warning("All consumers started successfully.")

@@ -1,11 +1,16 @@
 def train_efficientnet_emotion_model():
-    from emotion_model.efficientNet_model.build import build_finetune_efficientnet
+    import os
     from tensorflow.keras.applications.efficientnet import preprocess_input
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+    from emotion_model.efficientNet_model.build import build_finetune_efficientnet
 
+    # ✅ Đường dẫn dữ liệu
     train_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/train'
     test_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/test'
+
+    # ✅ Đường dẫn lưu file model (.keras)
+    model_path = 'D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model.keras'
 
     print("🔄 Creating data generators for EfficientNet (RGB, 224x224)...")
     train_datagen = ImageDataGenerator(
@@ -20,6 +25,7 @@ def train_efficientnet_emotion_model():
         fill_mode='nearest'
     )
     test_datagen = ImageDataGenerator(preprocessing_function=preprocess_input)
+
     train_gen = train_datagen.flow_from_directory(
         train_dir,
         target_size=(224, 224),
@@ -38,24 +44,26 @@ def train_efficientnet_emotion_model():
     )
 
     print("🔨 Building EfficientNetB0 for emotion classification...")
-    model = build_finetune_efficientnet(input_shape=(224, 224, 3), num_classes=7)
+    num_classes = len(train_gen.class_indices)
+    model = build_finetune_efficientnet(input_shape=(224, 224, 3), num_classes=num_classes)
     model.summary()
-
-    model_path = 'D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model'  # Lưu model dưới dạng thư mục
 
     print("🚀 Training EfficientNet model...")
     callbacks = [
         EarlyStopping(monitor='val_accuracy', patience=15, restore_best_weights=True),
-        ReduceLROnPlateau(monitor='val_accuracy', factor=0.2, patience=7, min_lr=1e-6)
+        ReduceLROnPlateau(monitor='val_accuracy', factor=0.2, patience=7, min_lr=1e-6),
+        ModelCheckpoint(filepath=model_path, monitor='val_accuracy', save_best_only=True)
     ]
+
     model.fit(
         train_gen,
-        epochs=100,
+        epochs=1,
         validation_data=test_gen,
         callbacks=callbacks
     )
-    print(f"✅ Training completed. Model saved in: {model_path}")
 
-    print(f"💾 Saving EfficientNet model to folder: {model_path}")
+    # ✅ Lưu file cuối cùng (nếu muốn)  
+    print(f"💾 Saving final model to file: {model_path}")
     model.save(model_path)
-    print(f"✅ Model folder saved at: {model_path}")
+    print(f"✅ Model saved at: {model_path}")
+    print("✅ Training completed successfully!")

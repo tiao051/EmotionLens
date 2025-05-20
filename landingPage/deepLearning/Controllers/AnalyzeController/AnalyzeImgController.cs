@@ -87,33 +87,53 @@ namespace deepLearning.Controllers.AnalyzeController
                 });
             }
 
-            var emotionResult = _emotionResultService.GetEmotionResult(id);
-
             _logger.LogInformation("Checking for emotion result with id: {Id}", id);
 
-            Console.WriteLine($"emotionResult:{emotionResult}");
-            if (emotionResult == null)
+            // 1. Thử lấy kết quả đơn
+            var emotionResult = _emotionResultService.GetEmotionResult(id);
+            if (emotionResult != null)
             {
-                return NotFound(new
+                var singleResponse = new
                 {
-                    success = false,
-                    message = "Emotion img 123 result not found."
-                });
+                    success = true,
+                    message = "Success (single result)",
+                    data = new
+                    {
+                        emotionResult.Id,
+                        emotionResult.Emotion
+                    }
+                };
+
+                _logger.LogInformation("Returned single emotion result: {Result}", JsonSerializer.Serialize(singleResponse));
+                return Ok(singleResponse);
             }
 
-            var response = new
+            // 2. Nếu không có kết quả đơn, thử lấy kết quả theo video (danh sách frame)
+            var videoResults = _emotionResultService.GetVideoEmotionResult(id);
+            if (videoResults != null && videoResults.Count >= 2)
             {
-                success = true,
-                message = "Success",
-                data = new
+                var batchResponse = new
                 {
-                    emotionResult.Id,
-                    emotionResult.Emotion
-                }
-            };
+                    success = true,
+                    message = "Success (batch result)",
+                    data = new
+                    {
+                        VideoId = id,
+                        FrameCount = videoResults.Count,
+                        Results = videoResults
+                    }
+                };
 
-            _logger.LogInformation("Returned emotion result: {Result}", JsonSerializer.Serialize(response));
-            return Ok(response);
+                _logger.LogInformation("Returned batch video emotion result: {Result}", JsonSerializer.Serialize(batchResponse));
+                return Ok(batchResponse);
+            }
+
+            // 3. Không tìm thấy gì
+            return NotFound(new
+            {
+                success = false,
+                message = "Emotion result not found."
+            });
         }
     }
 }

@@ -10,10 +10,12 @@ RABBITMQ_CONFIG = {
 }
 
 API_ENDPOINTS = {
-    "image": "https://localhost:44354/api/DataReceive/data-img",
-    "text": "https://localhost:44354/api/DataReceive/data-text",
-    "audio": "https://localhost:44354/api/DataReceive/data-audio",
-    "tiktok": "https://localhost:44354/api/DataReceive/data-tiktok"
+    "image": "https://localhost:44354/api/SingleDataReceive/single-data-img",
+    "text": "https://localhost:44354/api/SingleDataReceive/single-data-text",
+    "audio": "https://localhost:44354/api/SingleDataReceive/single-data-audio",
+    "multi_image": "https://localhost:44354/api/MultiDataReceive/multi-data-img",
+    "multi_text": "https://localhost:44354/api/MultiDataReceive/multi-data-text",
+    "multi_audio": "https://localhost:44354/api/MultiDataReceive/multi-data-audio"
 }
 
 TIKTOK_API_CONFIG = {

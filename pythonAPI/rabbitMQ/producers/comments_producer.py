@@ -28,7 +28,7 @@ class CommentQueueProducer:
         )
         print(f"📤 Sent comment by '{author}' to queue: {self.queue_name}")
 
-    def close(self):
+    def close(self):        
         if self.connection:
             self.connection.close()
             print(f"✅ Closed connection to RabbitMQ {self.queue_name}.")
