@@ -10,7 +10,7 @@
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const textData = await response.text(); 
+        const textData = await response.text();
         if (textData) {
             try {
                 const result = JSON.parse(textData);
@@ -32,7 +32,7 @@
 }
 function analyzeSentimentComment() {
     const inputText = document.getElementById("input-text").value;
-    console.log("Text input: ", inputText); 
+    console.log("Text input: ", inputText);
 
     if (!validateInput(inputText, "Please enter some text for analysis."))
         return;
@@ -48,11 +48,11 @@ function analyzeSentimentComment() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message, 'success');  
+                showToast(data.message, 'success');
                 console.log(data.fileId);
                 fetchTextEmotionResultPolling(data.fileId);
             } else {
-                showToast(data.message, 'error'); 
+                showToast(data.message, 'error');
             }
         })
         .catch(error => {
@@ -114,7 +114,7 @@ function analyzeSentimentImg() {
                 console.log(data.fileId);
                 fetchEmotionResultPolling(data.fileId);
             } else {
-                showToast(data.message, 'error'); 
+                showToast(data.message, 'error');
             }
         })
         .catch(error => {
@@ -161,9 +161,9 @@ function analyzeSentimentAudio() {
     }
 
     const formData = new FormData();
-    formData.append("audioFile", fileInput.files[0]); 
+    formData.append("audioFile", fileInput.files[0]);
 
-    fetch("/api/analyzeAudio/upload-audio", {  
+    fetch("/api/analyzeAudio/upload-audio", {
         method: "POST",
         body: formData,
     })
@@ -316,8 +316,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (analyzeImgBtn) analyzeImgBtn.addEventListener("click", analyzeSentimentImg);
     if (analyzeAudioBtn) analyzeAudioBtn.addEventListener("click", analyzeSentimentAudio);
 });
-const toastQueue = []; 
-let isToastVisible = false; 
+const toastQueue = [];
+let isToastVisible = false;
 
 function showToast(message, type = 'error') {
     toastQueue.push({ message, type });
@@ -329,7 +329,7 @@ function showToast(message, type = 'error') {
 
 function displayNextToast() {
     if (toastQueue.length === 0) {
-        isToastVisible = false; 
+        isToastVisible = false;
         return;
     }
 
@@ -341,17 +341,17 @@ function displayNextToast() {
 
     // Đặt màu sắc dựa trên loại thông báo
     if (type === 'success') {
-        toast.style.backgroundColor = '#4CAF50'; 
+        toast.style.backgroundColor = '#4CAF50';
     } else if (type === 'warning') {
-        toast.style.backgroundColor = '#FF9800'; 
+        toast.style.backgroundColor = '#FF9800';
     } else {
-        toast.style.backgroundColor = '#f44336'; 
+        toast.style.backgroundColor = '#f44336';
     }
 
     toast.innerHTML = `${message}`;
     toastContainer.appendChild(toast);
 
-    
+
     setTimeout(() => toast.classList.add('show'), 100);
 
     // Ẩn toast sau 3 giây và hiển thị toast tiếp theo
@@ -383,16 +383,23 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
                 console.log("Polling response:", data);
 
                 if (data && data.success && data.data) {
-                    // Update results with available data
-                    results.text = results.text || data.data.text;
-                    results.audio = results.audio || data.data.audio;
-                    results.image = results.image || data.data.image;
+                    // Map đúng các trường
+                    if (data.data.topTextEmotions && Object.keys(data.data.topTextEmotions).length > 0) {
+                        results.text = data.data.topTextEmotions;
+                    }
+                    if (data.data.topAudioEmotions && Object.keys(data.data.topAudioEmotions).length > 0) {
+                        results.audio = data.data.topAudioEmotions;
+                    }
+                    if (data.data.topVideoEmotions && Object.keys(data.data.topVideoEmotions).length > 0) {
+                        results.image = data.data.topVideoEmotions;
+                    }
 
-                    // Check if all three types of data are available
+                    console.log("📌 Current accumulated results:", results);
+
                     if (results.text && results.audio && results.image) {
                         console.log("✅ All multi-emotion results are ready");
                         showToast("All emotion analysis results retrieved successfully!", "success");
-                        displayMultiEmotionResults(results); // Display the results
+                        displayMultiEmotionResults(results);
                         return;
                     }
                 }
@@ -404,8 +411,8 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
                 } else {
                     console.log("❌ Emotion result not fully available after multiple attempts.");
                     showToast("Emotion analysis results are partially available. Please check the available data.", "warning");
-                    console.log("Available results:", results);
-                    displayMultiEmotionResults(results); 
+                    console.log("🔍 Final results:", results);
+                    displayMultiEmotionResults(results);
                 }
             })
             .catch(error => {
@@ -413,11 +420,12 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
                 showToast("Error while retrieving emotion analysis results: " + error.message, "error");
             });
     };
+
     poll();
 }
 
 function displayMultiEmotionResults(data) {
-    console.log("Displaying multi-emotion results:", data);
+    console.log("Displaying multi-emotion results (percentages):", data);
     // Always render results inside the #result-empty div
     let resultsContainer = document.getElementById('result-empty');
     if (!resultsContainer) {
@@ -436,37 +444,32 @@ function displayMultiEmotionResults(data) {
     twoColumnLayout.className = 'two-column-layout';
     resultsContainer.appendChild(twoColumnLayout);
 
-    // Left column for Creator's Emotions (audio and video)
+    // Left column for Creator's Emotions (audio and image)
     const leftColumn = document.createElement('div');
     leftColumn.className = 'column left-column';
     leftColumn.innerHTML = '<h3 class="column-title">Creator\'s Emotions</h3>';
     twoColumnLayout.appendChild(leftColumn);
 
-    // Gộp Audio Emotions và Video Emotions vào cùng một thẻ div
+    // Creator's Emotions: Audio + Image (percentages)
     const creatorSection = document.createElement('div');
     creatorSection.className = 'result-section';
     let creatorContent = '';
     // Audio Emotions
-    if (data.audio && data.audio.length > 0) {
-        creatorContent += '<h4>Audio Emotions</h4>';
+    if (data.audio) {
+        creatorContent += '<h4>Audio Emotion Percentages</h4>';
         creatorContent += '<ul>';
-        data.audio.forEach(item => {
-            creatorContent += `<li>Section: <strong>${item.section || ''}</strong> - Emotion: <strong>${item.emotion || ''}</strong></li>`;
+        Object.entries(data.audio).forEach(([emotion, percent]) => {
+            creatorContent += `<li><strong>${emotion}</strong>: ${percent}%</li>`;
         });
         creatorContent += '</ul>';
     }
-    // Video Emotions
-    if (data.image && data.image.results && data.image.results.length > 0) {
-        creatorContent += `<h4>Video Emotions (${data.image.frameCount || data.image.results.length} frames)</h4>`;
+    // Image Emotions
+    if (data.image) {
+        creatorContent += '<h4>Image (Video Frame) Emotion Percentages</h4>';
         creatorContent += '<ul>';
-        const maxFrames = Math.min(10, data.image.results.length);
-        for (let i = 0; i < maxFrames; i++) {
-            const frame = data.image.results[i];
-            creatorContent += `<li>Frame: <strong>${frame.frame || i}</strong> - Emotion: <strong>${frame.emotion || ''}</strong></li>`;
-        }
-        if (data.image.results.length > maxFrames) {
-            creatorContent += `<li>... and ${data.image.results.length - maxFrames} more frames</li>`;
-        }
+        Object.entries(data.image).forEach(([emotion, percent]) => {
+            creatorContent += `<li><strong>${emotion}</strong>: ${percent}%</li>`;
+        });
         creatorContent += '</ul>';
     }
     if (!creatorContent) {
@@ -476,21 +479,21 @@ function displayMultiEmotionResults(data) {
     creatorSection.innerHTML = creatorContent;
     leftColumn.appendChild(creatorSection);
 
-    // Right column for Viewer's Emotions (comments/text)
+    // Right column for Viewer's Emotions (text)
     const rightColumn = document.createElement('div');
     rightColumn.className = 'column right-column';
     rightColumn.innerHTML = '<h3 class="column-title">Viewer\'s Emotions Trend</h3>';
     twoColumnLayout.appendChild(rightColumn);
 
-    // Display text/comment data in right column
-    if (data.text && data.text.length > 0) {
+    // Text Emotions (percentages)
+    if (data.text) {
         const textSection = document.createElement('div');
         textSection.className = 'result-section';
-        textSection.innerHTML = '<h4>Comment Emotions</h4>';
+        textSection.innerHTML = '<h4>Comment Emotion Percentages</h4>';
         const textList = document.createElement('ul');
-        data.text.forEach(item => {
+        Object.entries(data.text).forEach(([emotion, percent]) => {
             const li = document.createElement('li');
-            li.innerHTML = `Author: <strong>${item.author || ''}</strong> - Emotion: <strong>${item.emotion || item.result || ''}</strong>`;
+            li.innerHTML = `<strong>${emotion}</strong>: ${percent}%`;
             textList.appendChild(li);
         });
         textSection.appendChild(textList);

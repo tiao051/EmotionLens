@@ -4,17 +4,23 @@ from rabbitMQ.services.api_client import send_to_api_async
 from config import API_ENDPOINTS
 
 def map_emotion_label(class_id):
+    # Map 5-class sentiment to 7 standard emotions
+    # 0: Very negative -> angry
+    # 1: Negative      -> sad
+    # 2: Neutral       -> neutral
+    # 3: Positive      -> happy
+    # 4: Very positive -> surprise
     mapping = {
-        0: "Very negative",
-        1: "Negative",
-        2: "Neutral",
-        3: "Positive",
-        4: "Very positive"
+        0: "angry",
+        1: "sad",
+        2: "neutral",
+        3: "happy",
+        4: "surprise"
     }
-    # Hỗ trợ cả int và str key
+    # Support both int and str keys
     if isinstance(class_id, str) and class_id.isdigit():
         class_id = int(class_id)
-    return mapping.get(class_id, str(class_id))
+    return mapping.get(class_id, "neutral")
 
 def create_text_callback(model, tokenizer, id2label):
     async def callback_txt(ch, method, properties, body):

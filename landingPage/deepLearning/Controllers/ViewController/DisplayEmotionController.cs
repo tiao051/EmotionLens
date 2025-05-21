@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using deepLearning.Services.EmotionServices;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace deepLearning.Controllers.ViewController
 {
@@ -18,6 +20,7 @@ namespace deepLearning.Controllers.ViewController
             _emotionResultService = emotionResultService ?? throw new ArgumentNullException(nameof(emotionResultService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
         [HttpGet("get-multi-emotion-result")]
         public async Task<IActionResult> GetMultiEmotionResult([FromQuery] string id)
         {
@@ -42,7 +45,102 @@ namespace deepLearning.Controllers.ViewController
                 var multiResults = multiResultsTask.Result;
                 var videoResults = videoResultsTask.Result;
 
-                // Process text emotion data
+                // Define emotion categories
+                var emotions = new[] { "happy", "sad", "angry", "fear", "surprise", "disgust", "neutral" };
+
+                // Calculate text emotions (from comments)
+                var textEmotionCounts = new Dictionary<string, int>();
+                foreach (var emotion in emotions)
+                {
+                    textEmotionCounts[emotion] = 0;
+                }
+                if (batchResults != null && batchResults.Any())
+                {
+                    foreach (var item in batchResults)
+                    {
+                        string emotion = (item.Result ?? "No emotion detected").ToLower();
+                        if (emotions.Contains(emotion))
+                        {
+                            textEmotionCounts[emotion] = textEmotionCounts.GetValueOrDefault(emotion) + 1;
+                        }
+                    }
+                }
+                var textEmotions = CalculatePercentages(textEmotionCounts, batchResults?.Count() ?? 0);
+                var topTextEmotions = textEmotions
+                    .Where(x => x.Value > 0)
+                    .OrderByDescending(x => x.Value)
+                    .Take(4)
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                // Calculate audio emotions (from sections)
+                var audioEmotionCounts = new Dictionary<string, int>();
+                foreach (var emotion in emotions)
+                {
+                    audioEmotionCounts[emotion] = 0;
+                }
+                if (multiResults != null && multiResults.Any())
+                {
+                    foreach (var item in multiResults)
+                    {
+                        string emotion = item.Emotion.ToLower();
+                        if (emotions.Contains(emotion))
+                        {
+                            audioEmotionCounts[emotion] = audioEmotionCounts.GetValueOrDefault(emotion) + 1;
+                        }
+                    }
+                }
+                var audioEmotions = CalculatePercentages(audioEmotionCounts, multiResults?.Count() ?? 0);
+                var topAudioEmotions = audioEmotions
+                    .Where(x => x.Value > 0)
+                    .OrderByDescending(x => x.Value)
+                    .Take(4)
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                // Calculate video emotions (from frames)
+                var videoEmotionCounts = new Dictionary<string, int>();
+                foreach (var emotion in emotions)
+                {
+                    videoEmotionCounts[emotion] = 0;
+                }
+                if (videoResults != null && videoResults.Any())
+                {
+                    foreach (var item in videoResults)
+                    {
+                        string emotion = item.Emotion.ToLower();
+                        if (emotions.Contains(emotion))
+                        {
+                            videoEmotionCounts[emotion] = videoEmotionCounts.GetValueOrDefault(emotion) + 1;
+                        }
+                    }
+                }
+                var videoEmotions = CalculatePercentages(videoEmotionCounts, videoResults?.Count() ?? 0);
+                var topVideoEmotions = videoEmotions
+                    .Where(x => x.Value > 0)
+                    .OrderByDescending(x => x.Value)
+                    .Take(4)
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                // Log only the top emotions
+                _logger.LogInformation($"Emotion Analysis Results for Video ID: {id}");
+                _logger.LogInformation("Top Text Emotions (excluding 0%):");
+                foreach (var emotion in topTextEmotions)
+                {
+                    _logger.LogInformation($"  {emotion.Key}: {emotion.Value}%");
+                }
+
+                _logger.LogInformation("Top Audio Emotions (excluding 0%):");
+                foreach (var emotion in topAudioEmotions)
+                {
+                    _logger.LogInformation($"  {emotion.Key}: {emotion.Value}%");
+                }
+
+                _logger.LogInformation("Top Video Emotions (excluding 0%):");
+                foreach (var emotion in topVideoEmotions)
+                {
+                    _logger.LogInformation($"  {emotion.Key}: {emotion.Value}%");
+                }
+
+                // Process original data for API response
                 var textData = (batchResults != null && batchResults.Any())
                     ? batchResults.Select(r => new
                     {
@@ -51,7 +149,6 @@ namespace deepLearning.Controllers.ViewController
                     }).ToList()
                     : null;
 
-                // Process audio emotion data
                 var audioData = (multiResults != null && multiResults.Any())
                     ? multiResults.Select(r => new
                     {
@@ -62,7 +159,6 @@ namespace deepLearning.Controllers.ViewController
                     }).ToList()
                     : null;
 
-                // Process video frame emotion data
                 var imageData = (videoResults != null && videoResults.Any())
                     ? new
                     {
@@ -82,22 +178,17 @@ namespace deepLearning.Controllers.ViewController
                     message = "Emotion results retrieved successfully.",
                     data = new
                     {
-                        text = textData,
-                        audio = audioData,
-                        image = imageData
+                        topTextEmotions,
+                        topAudioEmotions,
+                        topVideoEmotions
                     }
                 };
-
-                // Log the count of each data type
-                _logger.LogInformation($"Text data count: {(textData != null ? textData.Count : 0)}");
-                _logger.LogInformation($"Audio data count: {(audioData != null ? audioData.Count : 0)}");
-                _logger.LogInformation($"Image data count: {(imageData != null ? imageData.Results.Count : 0)}");
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug("Multi emotion result: {Result}", JsonSerializer.Serialize(result));
                 }
-                
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -105,6 +196,27 @@ namespace deepLearning.Controllers.ViewController
                 _logger.LogError(ex, "Error retrieving emotion results for video ID: {VideoId}", id);
                 return StatusCode(500, new { success = false, message = "An error occurred while retrieving emotion results." });
             }
+        }
+
+        private Dictionary<string, double> CalculatePercentages(Dictionary<string, int> emotionCounts, int totalCount)
+        {
+            var emotions = new[] { "happy", "sad", "angry", "fear", "surprise", "disgust", "neutral" };
+            var percentages = new Dictionary<string, double>();
+            foreach (var emotion in emotions)
+            {
+                percentages[emotion] = 0.0;
+            }
+            if (totalCount > 0)
+            {
+                foreach (var emotion in emotionCounts.Keys)
+                {
+                    if (emotions.Contains(emotion))
+                    {
+                        percentages[emotion] = Math.Round((double)emotionCounts[emotion] / totalCount * 100, 2);
+                    }
+                }
+            }
+            return percentages;
         }
     }
 }

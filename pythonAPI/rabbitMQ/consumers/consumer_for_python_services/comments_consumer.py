@@ -8,11 +8,11 @@ import torch
 
 def map_emotion_label(class_id):
     mapping = {
-        0: "Very negative",
-        1: "Negative",
-        2: "Neutral",
-        3: "Positive",
-        4: "Very positive"
+        0: "angry",
+        1: "sad",
+        2: "neutral",
+        3: "happy",
+        4: "surprise"
     }
     if isinstance(class_id, str) and class_id.isdigit():
         class_id = int(class_id)
