@@ -16,7 +16,7 @@ async def get_comments(video_id: str, ms_token: str, output_path: str):
             num_sessions=1,
             sleep_after=5,
             browser=os.getenv("TIKTOK_BROWSER", "chromium"),
-            headless=True
+            headless=False
         )
         video = api.video(id=video_id)
 

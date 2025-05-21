@@ -88,6 +88,11 @@ namespace deepLearning.Controllers.ViewController
                     }
                 };
 
+                // Log the count of each data type
+                _logger.LogInformation($"Text data count: {(textData != null ? textData.Count : 0)}");
+                _logger.LogInformation($"Audio data count: {(audioData != null ? audioData.Count : 0)}");
+                _logger.LogInformation($"Image data count: {(imageData != null ? imageData.Results.Count : 0)}");
+
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug("Multi emotion result: {Result}", JsonSerializer.Serialize(result));

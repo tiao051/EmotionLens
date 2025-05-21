@@ -351,7 +351,7 @@ function displayNextToast() {
     toast.innerHTML = `${message}`;
     toastContainer.appendChild(toast);
 
-    // Hiển thị toast
+    
     setTimeout(() => toast.classList.add('show'), 100);
 
     // Ẩn toast sau 3 giây và hiển thị toast tiếp theo
@@ -392,6 +392,7 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
                     if (results.text && results.audio && results.image) {
                         console.log("✅ All multi-emotion results are ready");
                         showToast("All emotion analysis results retrieved successfully!", "success");
+                        displayMultiEmotionResults(results); // Display the results
                         return;
                     }
                 }
@@ -404,6 +405,7 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
                     console.log("❌ Emotion result not fully available after multiple attempts.");
                     showToast("Emotion analysis results are partially available. Please check the available data.", "warning");
                     console.log("Available results:", results);
+                    displayMultiEmotionResults(results); 
                 }
             })
             .catch(error => {
@@ -412,4 +414,198 @@ function fetchMultiEmotionResultPolling(videoId, maxAttempts = 20, delayMs = 300
             });
     };
     poll();
+}
+
+function displayMultiEmotionResults(data) {
+    console.log("Displaying multi-emotion results:", data);
+    // Always render results inside the #result-empty div
+    let resultsContainer = document.getElementById('result-empty');
+    if (!resultsContainer) {
+        // fallback: create if not found
+        resultsContainer = document.createElement('div');
+        resultsContainer.id = 'result-empty';
+        resultsContainer.className = 'result-empty';
+        const mainResultSection = document.querySelector('.result-section');
+        if (mainResultSection) mainResultSection.appendChild(resultsContainer);
+    }
+    // Clear old content
+    resultsContainer.innerHTML = '';
+
+    // Create two-column layout
+    const twoColumnLayout = document.createElement('div');
+    twoColumnLayout.className = 'two-column-layout';
+    resultsContainer.appendChild(twoColumnLayout);
+
+    // Left column for Creator's Emotions (audio and video)
+    const leftColumn = document.createElement('div');
+    leftColumn.className = 'column left-column';
+    leftColumn.innerHTML = '<h3 class="column-title">Creator\'s Emotions</h3>';
+    twoColumnLayout.appendChild(leftColumn);
+
+    // Gộp Audio Emotions và Video Emotions vào cùng một thẻ div
+    const creatorSection = document.createElement('div');
+    creatorSection.className = 'result-section';
+    let creatorContent = '';
+    // Audio Emotions
+    if (data.audio && data.audio.length > 0) {
+        creatorContent += '<h4>Audio Emotions</h4>';
+        creatorContent += '<ul>';
+        data.audio.forEach(item => {
+            creatorContent += `<li>Section: <strong>${item.section || ''}</strong> - Emotion: <strong>${item.emotion || ''}</strong></li>`;
+        });
+        creatorContent += '</ul>';
+    }
+    // Video Emotions
+    if (data.image && data.image.results && data.image.results.length > 0) {
+        creatorContent += `<h4>Video Emotions (${data.image.frameCount || data.image.results.length} frames)</h4>`;
+        creatorContent += '<ul>';
+        const maxFrames = Math.min(10, data.image.results.length);
+        for (let i = 0; i < maxFrames; i++) {
+            const frame = data.image.results[i];
+            creatorContent += `<li>Frame: <strong>${frame.frame || i}</strong> - Emotion: <strong>${frame.emotion || ''}</strong></li>`;
+        }
+        if (data.image.results.length > maxFrames) {
+            creatorContent += `<li>... and ${data.image.results.length - maxFrames} more frames</li>`;
+        }
+        creatorContent += '</ul>';
+    }
+    if (!creatorContent) {
+        creatorContent = '<p>No creator emotion data available</p>';
+        creatorSection.classList.add('empty-section');
+    }
+    creatorSection.innerHTML = creatorContent;
+    leftColumn.appendChild(creatorSection);
+
+    // Right column for Viewer's Emotions (comments/text)
+    const rightColumn = document.createElement('div');
+    rightColumn.className = 'column right-column';
+    rightColumn.innerHTML = '<h3 class="column-title">Viewer\'s Emotions Trend</h3>';
+    twoColumnLayout.appendChild(rightColumn);
+
+    // Display text/comment data in right column
+    if (data.text && data.text.length > 0) {
+        const textSection = document.createElement('div');
+        textSection.className = 'result-section';
+        textSection.innerHTML = '<h4>Comment Emotions</h4>';
+        const textList = document.createElement('ul');
+        data.text.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `Author: <strong>${item.author || ''}</strong> - Emotion: <strong>${item.emotion || item.result || ''}</strong>`;
+            textList.appendChild(li);
+        });
+        textSection.appendChild(textList);
+        rightColumn.appendChild(textSection);
+    }
+
+    // Display "No data available" message if a column is empty
+    if (!leftColumn.querySelector('.result-section')) {
+        const emptySection = document.createElement('div');
+        emptySection.className = 'result-section empty-section';
+        emptySection.innerHTML = '<p>No creator emotion data available</p>';
+        leftColumn.appendChild(emptySection);
+    }
+    if (!rightColumn.querySelector('.result-section')) {
+        const emptySection = document.createElement('div');
+        emptySection.className = 'result-section empty-section';
+        emptySection.innerHTML = '<p>No viewer emotion data available</p>';
+        rightColumn.appendChild(emptySection);
+    }
+
+    // Add inline CSS for the two-column layout (only once)
+    if (!document.getElementById('multi-emotion-results-style')) {
+        const style = document.createElement('style');
+        style.id = 'multi-emotion-results-style';
+        style.textContent = `
+        .results-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .results-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .results-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+        .two-column-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .column {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+        .column-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--text-color);
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+        .result-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        .result-section:hover {
+            transform: translateY(-3px);
+        }
+        .result-section h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 8px;
+        }
+        .result-section ul {
+            padding-left: 20px;
+            list-style-type: none;
+        }
+        .result-section li {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+        }
+        .empty-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+        }
+        @media (max-width: 768px) {
+            .two-column-layout {
+                flex-direction: column;
+            }
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Scroll to the results container
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
 }
