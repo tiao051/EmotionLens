@@ -1,6 +1,4 @@
-﻿using deepLearning.Services.RabbitMQServices.ImgServices;
-
-namespace deepLearning.Services.RabbitMQServices.TextServices
+﻿namespace deepLearning.Services.RabbitMQServices.TextServices
 {
     public class TextManager
     {

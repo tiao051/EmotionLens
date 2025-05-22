@@ -1,9 +1,7 @@
-﻿using deepLearning.Models.DTO;
-using deepLearning.Models.DTO.MultiAudioModel;
+﻿using deepLearning.Models.DTO.MultiAudioModel;
 using deepLearning.Models.DTO.MultiImageModel;
 using deepLearning.Models.DTO.MultiTextModel;
 using deepLearning.Services.EmotionServices;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace deepLearning.Controllers.DataController

@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System.Text;
 
 namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
@@ -31,8 +30,6 @@ namespace deepLearning.Services.RabbitMQServices.UrlServices.CSVServices
                     _logger.LogError("file path is null or empty");
                     return;
                 }
-                var entityName = "Lana Del Rey";
-                var entityDescription = "American singer-songwriter";
 
                 var factory = new ConnectionFactory
                 {
