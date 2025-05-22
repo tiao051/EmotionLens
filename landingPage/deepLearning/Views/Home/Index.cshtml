@@ -59,7 +59,7 @@
                         <textarea id="input-text" placeholder="Enter the text or comment you want to analyze..."></textarea>
                     </div>
                     <div class="file-upload">
-                        <label for="file-input" class="file-upload-btn">
+                        <label for="file-input" class="file-upload-btn" onclick="showFeatureComingSoon(event)">
                             <i class="fas fa-file-upload"></i>
                             <span class="file-upload-text">Upload CSV file (multiple comments)</span>
                         </label>
@@ -81,7 +81,7 @@
                         <textarea id="input-url" placeholder="Enter the Url you want to analyze..."></textarea>
                     </div>
                     <div class="file-upload">
-                        <label for="file-input" class="file-upload-btn">
+                        <label for="file-input" class="file-upload-btn" onclick="showFeatureComingSoon(event)">
                             <i class="fas fa-file-upload"></i>
                             <span class="file-upload-text">Upload CSV file (multiple URLs)</span>
                         </label>
@@ -134,5 +134,72 @@
             </div>
         </div>
     </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">Features</h2>
+            <div class="features-list">
+                <div class="feature-item">
+                    <i class="fas fa-language"></i>
+                    <h3>Text Emotion Analysis</h3>
+                    <p>Analyze emotions from comments, posts, and messages using advanced NLP models (DistilBERT).</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-image"></i>
+                    <h3>Image Emotion Recognition</h3>
+                    <p>Detect facial emotions in images with state-of-the-art deep learning (EfficientNet).</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-volume-up"></i>
+                    <h3>Audio Emotion Detection</h3>
+                    <p>Classify emotions from voice and audio files using BiLSTM-based models.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fab fa-tiktok"></i>
+                    <h3>Social Media Integration</h3>
+                    <p>Support for TikTok, YouTube and more. Analyze content directly from social media URLs.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Visualization</h3>
+                    <p>Intuitive and interactive result visualization for better insights.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Batch Processing</h3>
+                    <p>Upload CSV files for large-scale, automated emotion analysis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="section-title">About EmotionLens</h2>
+            <p class="about-description">
+                <b>EmotionLens</b> is a multi-modal emotion analysis system utilizing state-of-the-art deep learning models. The application enables emotion recognition from text, facial images, and audio, supporting social media platforms such as TikTok and YouTube.
+                <br><br>
+                The system leverages models like DistilBERT for text, EfficientNet for images, and BiLSTM for audio, providing fast, accurate, and intuitive emotion detection.
+            </p>
+            <ul class="about-features">
+                <li><i class="fas fa-check-circle"></i> Analyze emotions from comments, videos, images, and audio</li>
+                <li><i class="fas fa-check-circle"></i> Modern deep learning technology, intuitive results</li>
+                <li><i class="fas fa-check-circle"></i> Multi-platform social media support</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Popup Modal -->
+    <div id="feature-modal" class="feature-modal">
+        <div class="feature-modal-content">
+            <span class="feature-modal-close" onclick="closeFeatureModal()">&times;</span>
+            <i class="fas fa-tools feature-modal-icon"></i>
+            <h3>Feature Coming Soon</h3>
+            <p>This feature is not supported yet. We are developing it. Please stay tuned!</p>
+        </div>
+    </div>
+    <script src="~/js/site.js"></script>
 </body>
 </html>

@@ -611,3 +611,16 @@ function displayMultiEmotionResults(data) {
     // Scroll to the results container
     resultsContainer.scrollIntoView({ behavior: 'smooth' });
 }
+function showFeatureComingSoon(e) {
+    e.preventDefault();
+    document.getElementById('feature-modal').style.display = 'flex';
+}
+function closeFeatureModal() {
+        document.getElementById('feature-modal').style.display = 'none';
+}
+window.onclick = function(event) {
+    var modal = document.getElementById('feature-modal');
+    if (event.target === modal) {
+            modal.style.display = 'none';
+    }
+}
