@@ -10,7 +10,7 @@ def train_efficientnet_emotion_model():
     test_dir = 'D:/Deep_Learning/dataSet/trainData/fer2013/test'
 
     # ✅ Đường dẫn lưu file model (.keras)
-    model_path = 'D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model.keras'
+    model_path = 'D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model'
 
     print("🔄 Creating data generators for EfficientNet (RGB, 224x224)...")
     train_datagen = ImageDataGenerator(

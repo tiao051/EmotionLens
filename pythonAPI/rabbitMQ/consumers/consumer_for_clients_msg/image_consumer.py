@@ -15,7 +15,7 @@ def create_img_callback(model):
 
         try:
             # Load và tiền xử lý ảnh
-            img = load_img(file_path, target_size=(48, 48), color_mode='grayscale')
+            img = load_img(file_path, target_size=(224, 224), color_mode='rgb')
             img_array = img_to_array(img) / 255.0
             img_array = np.expand_dims(img_array, axis=0)
 

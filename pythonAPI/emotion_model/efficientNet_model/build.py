@@ -1,4 +1,4 @@
-def build_finetune_efficientnet(input_shape=(48, 48, 3), num_classes=7, unfreeze_layers=20):
+def build_finetune_efficientnet(input_shape=(224, 224, 3), num_classes=7, unfreeze_layers=20):
     from tensorflow.keras.applications import EfficientNetB0
     from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout, BatchNormalization
     from tensorflow.keras.models import Model

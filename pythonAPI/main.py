@@ -80,8 +80,13 @@ def load_text_model():
     return model, tokenizer, id2label
 
 def load_image_model():
-    model = build_finetune_efficientnet(input_shape=(48, 48, 3), num_classes=7)
-    logging.warning("Image EfficientNet model built successfully")
+    from tensorflow.keras.models import load_model
+    from pathlib import Path
+
+    model_path = Path("D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model/efficientnet_emotion_model.keras")
+    
+    model = load_model(model_path)
+    logging.warning(f"Image EfficientNet model loaded successfully from {model_path}")
     return model
 
 def start_consumer(queue_name, callback):

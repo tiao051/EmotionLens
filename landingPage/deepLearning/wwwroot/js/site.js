@@ -245,7 +245,6 @@ function analyzeSentimentUrl() {
             .then(data => {
                 if (data.success) {
                     console.log("FileId:", data.fileId);
-                    // Call the function to fetch multi-emotion data with fileId
                     fetchMultiEmotionData(data.fileId);
                 } else {
                     showToast(data.message || "Error analyzing the URL.", 'error');
