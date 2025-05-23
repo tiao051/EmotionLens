@@ -58,5 +58,6 @@ Thumbs.db
 .idea/
 
 pythonAPI/emotion_model/restNet_model/fer2013_resnet50_best.keras
-
+pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model/efficientnet_emotion_model.keras
+pythonAPI/emotion_model/audio_model/crema_d_audio_emotion_bilstm.keras
 
