@@ -62,8 +62,6 @@ def train_efficientnet_emotion_model():
         callbacks=callbacks
     )
 
-    # ✅ Lưu file cuối cùng (nếu muốn)  
     print(f"💾 Saving final model to file: {model_path}")
     model.save(model_path)
     print(f"✅ Model saved at: {model_path}")
-    print("✅ Training completed successfully!")

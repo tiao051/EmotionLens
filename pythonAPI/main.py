@@ -4,26 +4,23 @@ import logging
 import asyncio
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
-# --- Cấu hình tắt các cảnh báo và giảm log rác ---
 warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore")  # Tắt hết warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # TensorFlow info/warnings -> chỉ lỗi
+warnings.filterwarnings("ignore") 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 logging.basicConfig(
-    level=logging.WARNING,  # Mặc định chỉ log warnings trở lên
+    level=logging.WARNING,  
     format='%(asctime)s | %(levelname)s | %(message)s',
 )
 
-# Giảm log chi tiết thư viện
 logging.getLogger("transformers").setLevel(logging.ERROR)
 logging.getLogger("torch").setLevel(logging.ERROR)
-
-# --- Import sau khi đã set config ---
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
+from tensorflow.keras.models import load_model
 from rabbitMQ.connection.connection import get_rabbitmq_connection
-from emotion_model.efficientNet_model.build import build_finetune_efficientnet
 
 from rabbitMQ.consumers.consumer_for_clients_msg import (
     audio_consumer,
@@ -37,6 +34,9 @@ from rabbitMQ.consumers.consumer_for_python_services import (
     comments_consumer,
 )
 
+def train_text_model():
+    from emotion_model.text_model.text_train import train_text_model
+    train_text_model()
 def train_img_model():
     from emotion_model.efficientNet_model.train import train_efficientnet_emotion_model
     train_efficientnet_emotion_model()
@@ -71,22 +71,24 @@ def load_audio_model():
     return audio_consumer.create_audio_callback(audio_model, audio_label_encoder)
 
 def load_text_model():
-    MODEL_DIR = Path(r"D:\Deep_Learning\main\pythonAPI\emotion_model\text_model\best_model")
-    model = DistilBertForSequenceClassification.from_pretrained(MODEL_DIR)
-    tokenizer = DistilBertTokenizer.from_pretrained(MODEL_DIR)
-    model.eval()
-    id2label = model.config.id2label
-    logging.warning(f"Text model loaded successfully from {MODEL_DIR}")
-    return model, tokenizer, id2label
+    model_path = Path("D:/Deep_Learning/main/pythonAPI/emotion_model/text_model/text_model.keras")
+
+    model = load_model(model_path)
+    logging.warning(f"Text model loaded successfully from {model_path}")
+    return model
 
 def load_image_model():
-    from tensorflow.keras.models import load_model
-    from pathlib import Path
-
     model_path = Path("D:/Deep_Learning/main/pythonAPI/emotion_model/efficientNet_model/efficientnet_emotion_model/efficientnet_emotion_model.keras")
     
     model = load_model(model_path)
     logging.warning(f"Image EfficientNet model loaded successfully from {model_path}")
+    return model
+
+def load_restNet_model():
+    model_path = Path("D:/Deep_Learning/main/pythonAPI/emotion_model/restNet_model/fer2013_resnet50_best.keras")
+    
+    model = load_model(model_path, compile=False)
+    logging.warning(f"Image RestNet model loaded successfully from {model_path}")
     return model
 
 def start_consumer(queue_name, callback):
@@ -111,7 +113,7 @@ def start_consumer(queue_name, callback):
             logging.warning(f"Error closing RabbitMQ connection for {queue_name}: {e}")
 
 def start_all_consumers():
-    image_model = load_image_model()
+    image_model = load_restNet_model()
     img_callback = image_consumer.create_img_callback(image_model)
     
     text_model, tokenizer, id2label = load_text_model()

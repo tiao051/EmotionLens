@@ -15,8 +15,10 @@ EmotionLens là hệ thống phân tích cảm xúc từ nhiều nguồn dữ li
 - **Audio**: BiLSTM + Multi-Head Attention trên đặc trưng MFCC
 
 ## Hướng dẫn cài đặt
+
 ### Điều kiện tiên quyết
-- Sau khi đã giải nén file hãy đặt file ở ngay thư mục ổ D để những phần code đang bị hardcode có thể hoạt động đúng.
+- Sau khi đã giải nén file hãy đặt file Deep_Learning ở ngay thư mục ổ D để những phần code đang bị hardcode có thể hoạt động đúng.
+- Tương tự, hãy giải nén file ffmpeg.rar và để nó ở ngay thư mục ổ D.
 
 ### 1. Chuẩn bị môi trường
 - Cài đặt .NET 9.0.100
@@ -64,7 +66,7 @@ Hoặc lý tưởng hơn:
 - Sử dụng VSCode cho phần Python
 - Run từ thư mục main.py
 ### 6. Truy cập giao diện web
-- Mở trình duyệt và truy cập: http://localhost:44354
+- Mở trình duyệt và truy cập: http://localhost:44354 (nếu sử dụng terminal)
 
 ## Luồng hoạt động chính
 1. User gửi dữ liệu (text, ảnh, audio, hoặc URL TikTok/YouTube) lên web
@@ -77,4 +79,5 @@ Hoặc lý tưởng hơn:
 - HuggingFace dataset (đã được tái xử lý cho phù hợp với đề tài)
 
 ---
+
 Nếu gặp lỗi hoặc cần hỗ trợ, vui lòng liên hệ nhóm phát triển qua gmail: nguyenminhtho0503@gmail.com
