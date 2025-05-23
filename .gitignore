@@ -57,5 +57,5 @@ Thumbs.db
 # User-specific file types
 .idea/
 
-pythonAPI/emotion_model/text_model/best_model/
+pythonAPI/emotion_model/restNet_model/
 
